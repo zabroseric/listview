@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>54.0</apiVersion>
+    <description>An enhanced version of the Salesforce List View and Related List.</description>
+    <isExposed>false</isExposed>
+    <masterLabel>List View</masterLabel>
+</LightningComponentBundle>

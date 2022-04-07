@@ -1,0 +1,15 @@
+<!--
+ - Created by shaun on 7/04/2022.
+ -->
+
+<!-- List View -->
+<template>
+  <c-alert if:true={errorUI} variant="error">
+    {errorUI}
+  </c-alert>
+  <lightning-datatable if:false={isLoading}
+    key-field="Id"
+    data={data}
+    columns={columns}>
+  </lightning-datatable>
+</template>

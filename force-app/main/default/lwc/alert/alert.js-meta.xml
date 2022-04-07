@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>54.0</apiVersion>
+    <description>Display an alert as per the lightning design system guidelines</description>
+    <isExposed>true</isExposed>
+    <masterLabel>Display an alert as per the lightning design system guidelines</masterLabel>
+</LightningComponentBundle>
