@@ -34,7 +34,7 @@ export default class Alert extends LightningElement {
   }
 
   get showAlert() {
-    return variantAllowed.includes(this.variant)
+    return variantAllowed.includes(this.variant);
   }
 
   get iconName() {

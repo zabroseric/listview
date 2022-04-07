@@ -53,13 +53,13 @@ export default class ListView extends LightningElement {
     this.getMetaData()
       .catch((e) => {
         this.addErrorUI(e.body || e.message);
-        console.error(e);
+        console.error(e.body || e.message);
       });
 
     this.getData()
       .catch((e) => {
         this.addErrorUI(e.body || e.message);
-        console.error(e);
+        console.error(e.body || e.message);
       });
   }
 
@@ -134,8 +134,8 @@ export default class ListView extends LightningElement {
 
     if (/limit [0-9]/gi.exec(soql) !== null && this.pageSize) {
       console.warn('A page size has been added for pagination, but the SOQL has a limit/offset specified. Pagination has been turned off.');
-    } else {
-      soql += `${this.pageSize ? ' LIMIT ' + this.pageSize : ''} OFFSET ${this.dataOffset}`;
+    } else if (this.pageSize) {
+      soql += `LIMIT ${this.pageSize} OFFSET ${this.dataOffset}`;
     }
 
     console.debug(`Executing SOQL: ${soql}`);
