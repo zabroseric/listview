@@ -5,14 +5,26 @@
 public with sharing class ListViewController {
 
     /**
-     * Runs a query given a string.
+     * Get a count of SObjects based on a soql string.
      *
      * @param soql
      *
      * @return
      */
     @AuraEnabled
-    public static List<SObject> execSOQL(String soql) {
+    public static Integer getSObjectCount(String soql) {
+        return (Integer) Database.query(soql)[0].get('expr0');
+    }
+
+    /**
+     * Get a list of SObjects based on a soql string.
+     *
+     * @param soql
+     *
+     * @return
+     */
+    @AuraEnabled
+    public static List<SObject> getSObjects(String soql) {
         return Database.query(soql);
     }
 

@@ -3,7 +3,8 @@
  */
 
 import {api, LightningElement, wire} from 'lwc';
-import execSOQL from '@salesforce/apex/ListViewController.execSOQL'
+import getSObjects from '@salesforce/apex/ListViewController.getSObjects'
+import getSObjectCount from '@salesforce/apex/ListViewController.getSObjectCount'
 import getSObjectFields from '@salesforce/apex/ListViewController.getSObjectFields'
 import getColumn from './getColumn';
 
@@ -37,34 +38,30 @@ export default class ListView extends LightningElement {
   columns = [];
 
   data = [];
+  dataTotalCount = [];
   dataMeta = [];
-  isDataLoading = true;
-  isDataMetaLoading = true;
+  isLoading = true;
 
   /**
    * Runs the main process of detecting information based on arguments and runs
    * a query to populate the data table.
    */
-  connectedCallback() {
-    this.detectSOQLData();
-    this.detectIcon();
-    this.debugFields();
+  async connectedCallback() {
+    try {
+      this.detectSOQLData();
+      this.detectIcon();
 
-    this.getMetaData()
-      .catch((e) => {
-        this.addErrorUI(e.body || e.message);
-        console.error(e.body || e.message);
-      });
-
-    this.getData()
-      .catch((e) => {
-        this.addErrorUI(e.body || e.message);
-        console.error(e.body || e.message);
-      });
-  }
-
-  get isLoading() {
-    return this.isDataLoading || this.isDataMetaLoading;
+      // Run both process in multiple threads for performance.
+      await Promise.all([this.getMetaData(), this.getData()]);
+    }
+    catch (e) {
+      this.addErrorUI(e.body || e.message);
+      console.error(e.body || e.message);
+    }
+    finally {
+      this.isLoading = false;
+      this.debugFields();
+    }
   }
 
   get showSubTitle() {
@@ -111,14 +108,12 @@ export default class ListView extends LightningElement {
   async getMetaData() {
     console.debug(`Retrieving a list of fields.`);
     const dataMeta = this.dataMeta = await getSObjectFields({sObjectName: this.sObjectName});
-    console.debug(this.dataMeta);
 
     this.columns = this.fields
       .map((field) => field.toLowerCase()) // Convert to lowercase
       .map((field) => dataMeta[field]) // Get the respective metadata
       .map((field) => getColumn(field)) // Generate the column
     ;
-    console.table(this.columns);
 
     this.isDataMetaLoading = false;
   }
@@ -131,6 +126,7 @@ export default class ListView extends LightningElement {
    */
   async getData() {
     let soql = this.soql;
+    let soqlCount = this.soql.replace(/SELECT .+? FROM/i, 'SELECT count(Id) FROM');
 
     if (/limit [0-9]/gi.exec(soql) !== null && this.pageSize) {
       console.warn('A page size has been added for pagination, but the SOQL has a limit/offset specified. Pagination has been turned off.');
@@ -138,9 +134,13 @@ export default class ListView extends LightningElement {
       soql += `LIMIT ${this.pageSize} OFFSET ${this.dataOffset}`;
     }
 
+    // Get the rows
     console.debug(`Executing SOQL: ${soql}`);
-    this.data = await execSOQL({soql: soql});
-    console.table(this.data);
+    this.data = await getSObjects({soql: soql});
+
+    // Get the total count
+    console.debug(`Executing SOQL: ${soqlCount}`);
+    this.dataTotalCount = await getSObjectCount({soql: soqlCount});
 
     this.isDataLoading = false;
   }
@@ -151,8 +151,10 @@ export default class ListView extends LightningElement {
   debugFields() {
     console.debug(`SObject detected: ${this.sObjectName}`);
     console.debug(`Fields detected: ${this.fields}`);
-    console.debug(`Columns detected: ${this.columns}`);
     console.debug(`Icon detected: ${this.iconName}`);
+    console.debug(this.dataMeta);
+    console.table(this.columns);
+    console.table(this.data);
   }
 
   /**
