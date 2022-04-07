@@ -149,9 +149,10 @@ export default class ListView extends LightningElement {
    * Debug all information that we've got.
    */
   debugFields() {
-    console.debug(`SObject detected: ${this.sObjectName}`);
-    console.debug(`Fields detected: ${this.fields}`);
-    console.debug(`Icon detected: ${this.iconName}`);
+    console.debug(`SObject: ${this.sObjectName}`);
+    console.debug(`Fields: ${this.fields}`);
+    console.debug(`Icon: ${this.iconName}`);
+    console.debug(`Total Count: ${this.dataTotalCount}`);
     console.debug(this.dataMeta);
     console.table(this.columns);
     console.table(this.data);
@@ -193,8 +194,8 @@ export default class ListView extends LightningElement {
     if (!this.sObjectName) {
       return;
     }
-    if (this.sObjectName.indexOf('__c') !== -1) {
-      this.iconName = `standard:${this.sObjectName}`;
+    if (this.sObjectName.indexOf('__c') === -1) {
+      this.iconName = `standard:${this.sObjectName.toLowerCase()}`;
       return;
     }
 
