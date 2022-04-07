@@ -2,7 +2,7 @@
  * Created by shaun on 7/04/2022.
  */
 
-import {api, LightningElement, wire} from 'lwc';
+import {api, LightningElement} from 'lwc';
 import getSObjects from '@salesforce/apex/ListViewController.getSObjects'
 import getSObjectCount from '@salesforce/apex/ListViewController.getSObjectCount'
 import getSObjectFields from '@salesforce/apex/ListViewController.getSObjectFields'
@@ -114,8 +114,6 @@ export default class ListView extends LightningElement {
       .map((field) => dataMeta[field]) // Get the respective metadata
       .map((field) => getColumn(field)) // Generate the column
     ;
-
-    this.isDataMetaLoading = false;
   }
 
   /**
@@ -141,8 +139,6 @@ export default class ListView extends LightningElement {
     // Get the total count
     console.debug(`Executing SOQL: ${soqlCount}`);
     this.dataTotalCount = await getSObjectCount({soql: soqlCount});
-
-    this.isDataLoading = false;
   }
 
   /**
