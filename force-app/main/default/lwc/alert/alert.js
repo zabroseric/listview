@@ -6,14 +6,20 @@ import {api, LightningElement} from 'lwc';
 
 const variantAllowed = [
   'error',
+  'warning',
+  'info',
+  'success',
 ];
 
 const variantIcons = {
-  'error': 'utility:error'
+  'error': 'utility:error',
+  'warning': 'utility:warning',
+  'info': 'utility:user',
+  'success': 'utility:success',
 };
 
 /**
- * TODO: Implement the other variations supported by slds.
+ * Display an alert on the pae following the Lightning Design System standards.
  *
  * @src https://www.lightningdesignsystem.com/guidelines/messaging/components/alerts/#
  * @src https://www.lightningdesignsystem.com/icons/
