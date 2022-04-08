@@ -55,7 +55,7 @@ export default class ListView extends LightningElement {
       await Promise.all([this.getMetaData(), this.getData()]);
     }
     catch (e) {
-      this.addErrorUI(e.body || e.message);
+      this.addErrorUI(e.body.message || e.message);
       console.error(e.body || e.message);
     }
     finally {
@@ -74,6 +74,10 @@ export default class ListView extends LightningElement {
 
   get errorUI() {
     return this.errorUI;
+  }
+
+  get showTable() {
+    return !this.errorUI && !this.isLoading;
   }
 
   /**

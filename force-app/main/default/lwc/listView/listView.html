@@ -7,7 +7,7 @@
   <c-alert if:true={errorUI} variant="error">
     {errorUI}
   </c-alert>
-  <lightning-datatable if:false={isLoading}
+  <lightning-datatable if:true={showTable}
     key-field="Id"
     data={data}
     columns={columns}>
