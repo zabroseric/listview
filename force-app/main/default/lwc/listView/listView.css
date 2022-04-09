@@ -1,0 +1,26 @@
+.slds-card {
+  overflow: hidden;
+}
+
+.alert-container {
+  margin-bottom: -2px;
+}
+
+/*
+  Add an invisible block on the right of the datatable
+  to hide the right most resizing line.
+ */
+.datatable-container {
+  position: relative;
+  margin-bottom: -1px;
+  margin-right: -1px;
+}
+
+.datatable-sidebar {
+  position: absolute;
+  top: 0;
+  right: 1px;
+  height: 32px;
+  width: 1px;
+  background-color: #f3f3f3;
+}

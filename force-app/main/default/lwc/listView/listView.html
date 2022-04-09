@@ -1,15 +1,26 @@
-<!--
- - Created by shaun on 7/04/2022.
- -->
-
 <!-- List View -->
 <template>
-  <c-alert if:true={errorUI} variant="error">
-    {errorUI}
-  </c-alert>
-  <lightning-datatable if:true={showTable}
-    key-field="Id"
-    data={data}
-    columns={columns}>
-  </lightning-datatable>
+  <div class="slds-card slds-card_boundary">
+    <c-card-heading
+      title={title}
+      title-count={dataTotalCount}
+      sub-title={subTitle}
+      icon-name={iconName}>
+    </c-card-heading>
+    <div class="slds-border_bottom slds-color__border_gray-6"></div>
+    <div class="alert-container">
+      <c-alert if:true={errorUI} variant="error">
+        {errorUI}
+      </c-alert>
+    </div>
+    <div class="datatable-container">
+      <lightning-datatable
+        if:true={showTable}
+        key-field="Id"
+        data={data}
+        columns={columns}>
+      </lightning-datatable>
+      <div class="datatable-sidebar"></div>
+    </div>
+  </div>
 </template>

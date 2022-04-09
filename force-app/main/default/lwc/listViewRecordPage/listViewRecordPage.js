@@ -1,7 +1,3 @@
-/**
- * Created by shaun on 7/04/2022.
- */
-
 import {api, LightningElement} from 'lwc';
 
 export default class ListViewRecordPage extends LightningElement {

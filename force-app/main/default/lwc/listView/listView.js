@@ -1,7 +1,3 @@
-/**
- * Created by shaun on 7/04/2022.
- */
-
 import {api, LightningElement} from 'lwc';
 import getSObjects from '@salesforce/apex/ListViewController.getSObjects'
 import getSObjectCount from '@salesforce/apex/ListViewController.getSObjectCount'
@@ -55,25 +51,13 @@ export default class ListView extends LightningElement {
       await Promise.all([this.getMetaData(), this.getData()]);
     }
     catch (e) {
-      this.addErrorUI(e.body.message || e.message);
-      console.error(e.body || e.message);
+      this.addErrorUI(e?.body?.message || e?.message || e);
+      console.error(e?.body || e?.message);
     }
     finally {
       this.isLoading = false;
       this.debugFields();
     }
-  }
-
-  get showSubTitle() {
-    return this.title !== undefined;
-  }
-
-  get showIcon() {
-    return this.iconName !== undefined;
-  }
-
-  get errorUI() {
-    return this.errorUI;
   }
 
   get showTable() {
@@ -190,16 +174,19 @@ export default class ListView extends LightningElement {
       return;
     }
 
-    // Auto-detect - standard object name if provided.
+    // Auto-detect - SObject name missing.
     if (!this.sObjectName) {
+      this.iconName = 'standard:default';
       return;
     }
+
+    // Auto-detect - Standard SObject.
     if (this.sObjectName.indexOf('__c') === -1) {
       this.iconName = `standard:${this.sObjectName.toLowerCase()}`;
       return;
     }
 
-    // Auto detect - custom object name.
+    // Auto detect - custom SObject.
     this.iconName = undefined;
     // TODO: Implement this from tab.
   }
