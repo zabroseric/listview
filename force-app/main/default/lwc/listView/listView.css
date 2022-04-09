@@ -2,6 +2,9 @@
   overflow: hidden;
 }
 
+.spinner-container {
+  min-height: 120px;
+}
 .alert-container {
   margin-bottom: -2px;
 }

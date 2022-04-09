@@ -21,6 +21,9 @@
         columns={columns}>
       </lightning-datatable>
       <div class="datatable-sidebar"></div>
+      <div if:true={isLoading} class="spinner-container">
+        <lightning-spinner alternative-text="Loading" size="medium" variant="brand"></lightning-spinner>
+      </div>
     </div>
   </div>
 </template>
