@@ -17,6 +17,8 @@
       <lightning-datatable
         if:true={showTable}
         key-field="Id"
+        hide-checkbox-column
+        show-row-number-column={showRowNumber}
         data={data}
         columns={columns}
         onrowaction={onRowAction}>
