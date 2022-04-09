@@ -160,7 +160,7 @@ export default class ListView extends LightningElement {
    * Detect the icon that should be used on the page based on the SOQL provided.
    */
   detectIcon() {
-    const iconValidFormat = /$[a-z]+:[a-z]+^/i.exec(this.icon) !== null;
+    const iconValidFormat = /^[a-z]+:[a-z]+$/i.exec(this.icon) !== null;
 
     // Icon is provided, and is of a valid format.
     if (this.icon && iconValidFormat) {

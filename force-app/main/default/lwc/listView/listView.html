@@ -8,8 +8,8 @@
       icon-name={iconName}>
     </c-card-heading>
     <div class="slds-border_bottom slds-color__border_gray-6"></div>
-    <div class="alert-container">
-      <c-alert if:true={errorUI} variant="error">
+    <div if:true={errorUI} class="alert-container">
+      <c-alert variant="error">
         {errorUI}
       </c-alert>
     </div>
