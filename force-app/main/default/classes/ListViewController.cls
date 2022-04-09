@@ -1,7 +1,3 @@
-/**
- * Created by shaun on 7/04/2022.
- */
-
 public with sharing class ListViewController {
 
     /**
@@ -31,6 +27,7 @@ public with sharing class ListViewController {
     /**
      * Returns a full list of fields definitions based on the DescribeFieldResult class.
      *
+     * @src https://developer.salesforce.com/docs/atlas.en-us.apexref.meta/apexref/apex_methods_system_fields_describe.htm
      * @param sObjectName
      *
      * @return
@@ -40,7 +37,7 @@ public with sharing class ListViewController {
         Map<String, Object> fieldDefinitions = new Map<String, Object>();
         List<Schema.SObjectField> fields = Schema.getGlobalDescribe().get(sObjectName).getDescribe().fields.getMap().values();
 
-        for ( Schema.SObjectField field : fields ) {
+        for (Schema.SObjectField field : fields) {
             fieldDefinitions.put(field.getDescribe().getName().toLowerCase(), JSON.deserializeUntyped(JSON.serialize(field.getDescribe())));
         }
         return fieldDefinitions;
