@@ -3,6 +3,8 @@ import getSObjects from '@salesforce/apex/ListViewController.getSObjects'
 import getSObjectCount from '@salesforce/apex/ListViewController.getSObjectCount'
 import getSObjectFields from '@salesforce/apex/ListViewController.getSObjectFields'
 import getColumn from './getColumn';
+import {getCell} from "./getCell";
+import {getRow} from "./getRow";
 
 const errorMessageGeneric = 'An unknown error occurred, please contact support.';
 
@@ -17,7 +19,7 @@ export default class ListView extends LightningElement {
   @api icon;
   @api pageSize;
   @api showRowNumber;
-  @api showButtons;
+  @api urlType;
 
   // Editing of information.
   @api editFields;
@@ -100,7 +102,7 @@ export default class ListView extends LightningElement {
     this.columns = this.fields
       .map((field) => field.toLowerCase()) // Convert to lowercase
       .map((field) => dataMeta[field]) // Get the respective metadata
-      .map((field) => getColumn(field)) // Generate the column
+      .map((field) => getColumn(field, this.urlType)) // Generate the column
     ;
   }
 
@@ -122,7 +124,7 @@ export default class ListView extends LightningElement {
 
     // Get the rows
     console.debug(`Executing SOQL: ${soql}`);
-    this.data = await getSObjects({soql: soql});
+    this.data = (await getSObjects({soql: soql})).map((row) => getRow(row));
 
     // Get the total count
     console.debug(`Executing SOQL: ${soqlCount}`);

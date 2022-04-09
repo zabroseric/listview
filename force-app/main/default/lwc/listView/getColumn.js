@@ -26,7 +26,7 @@ const dataTypes = {
   'string':				                  'string',
   'textarea':			                	'string',
   'time':			                    	'string',
-  'url':			                    	'string',
+  'url':			                    	'url',
 }
 
 /**
@@ -36,10 +36,32 @@ const dataTypes = {
  * @param metaData
  * @returns {{fieldName, label, type: *}}
  */
-const getColumn = (metaData) => ({
-  fieldName: metaData.name,
-  label: metaData.label,
-  type: dataTypes[metaData.type]
-});
+const getColumn = (metaData, urlType) => {
+  const formula = metaData.calculatedFormula;
+
+  // Base definition.
+  const column = {
+    fieldName: metaData.name,
+    label: metaData.label,
+    type: dataTypes[metaData.type]
+  };
+
+  // Is hyperlink.
+  if (isHyperlinkFormula(formula)) {
+    column.type = 'url';
+    column.editable = false;
+  }
+  // Is hyperlink with hardcoded label.
+  if (isHyperlinkFormula(formula) && getHyperlinkLabel(formula)) {
+    column.typeAttributes = {
+      label: getHyperlinkLabel(formula),
+    };
+  }
+
+  return column;
+};
+
+const isHyperlinkFormula = (formula) => /hyperlink/i.exec(formula) !== null;
+const getHyperlinkLabel = (formula) => /hyperlink\([^,]+,\s*"(?<label>[^"]+)"/i.exec(formula)?.groups?.label;
 
 export default getColumn;
