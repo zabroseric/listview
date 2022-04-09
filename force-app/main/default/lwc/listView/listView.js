@@ -2,13 +2,13 @@ import {api, LightningElement} from 'lwc';
 import getSObjects from '@salesforce/apex/ListViewController.getSObjects'
 import getSObjectCount from '@salesforce/apex/ListViewController.getSObjectCount'
 import getSObjectFields from '@salesforce/apex/ListViewController.getSObjectFields'
+import {NavigationMixin} from "lightning/navigation";
 import getColumn from './getColumn';
-import {getCell} from "./getCell";
 import {getRow} from "./getRow";
 
 const errorMessageGeneric = 'An unknown error occurred, please contact support.';
 
-export default class ListView extends LightningElement {
+export default class ListView extends NavigationMixin(LightningElement) {
 
   // Controls the information that is queried and presented.
   @api soql;
@@ -51,19 +51,40 @@ export default class ListView extends LightningElement {
 
       // Run both process in multiple threads for performance.
       await Promise.all([this.getMetaData(), this.getData()]);
-    }
-    catch (e) {
+    } catch (e) {
       this.addErrorUI(e?.body?.message || e?.message || e);
       console.error(e?.body || e?.message);
-    }
-    finally {
+    } finally {
       this.isLoading = false;
       this.debugFields();
     }
   }
 
+  onRowAction(event) {
+    const action = event.detail.action;
+    const row = event.detail.row;
+
+    // If a url button has been pressed.
+    if (action?.type === 'button') {
+      this.navigateUrl(row[action?.fieldName]);
+    }
+  }
+
   get showTable() {
     return !this.errorUI && !this.isLoading;
+  }
+
+  /**
+   * Navigate the user to a specific URL.
+   */
+  navigateUrl(url) {
+    const config = {
+      type: 'standard__webPage',
+      attributes: {
+        url: url
+      }
+    };
+    this[NavigationMixin.Navigate](config);
   }
 
   /**
@@ -102,7 +123,9 @@ export default class ListView extends LightningElement {
     this.columns = this.fields
       .map((field) => field.toLowerCase()) // Convert to lowercase
       .map((field) => dataMeta[field]) // Get the respective metadata
-      .map((field) => getColumn(field, this.urlType)) // Generate the column
+      .map((field) => getColumn(field, { // Generate the column
+        urlType: this.urlType,
+      }))
     ;
   }
 

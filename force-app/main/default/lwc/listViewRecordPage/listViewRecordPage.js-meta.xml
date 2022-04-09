@@ -13,11 +13,11 @@
             <property name="soql" label="SOQL" type="String" required="true"/>
             <property name="subTitle" label="Sub Title" type="String"/>
             <property name="icon" label="Icon" type="String"/>
-            <property name="pageSize" label="Page Size" type="Integer" min="1"/>
-            <property name="editFields" label="Edit Fields" type="String"/>
+            <property name="pageSize" label="Page Size (Todo)" type="Integer" min="1"/>
+            <property name="editFields" label="Edit Fields (Todo)" type="String"/>
             <property name="urlType" label="URL Display" type="String" datasource="hyperlink,button-base,button-neutral,button-brand,button-brand-outline,button-destructive,button-destructive-text,button-inverse,button-success"/>
-            <property name="showRowNumber" label="Show Row Number" type="Boolean"/>
-            <property name="bypassAccess" label="Bypass Access" type="Boolean"/>
+            <property name="showRowNumber" label="Show Row Number (Todo)" type="Boolean"/>
+            <property name="bypassAccess" label="Bypass Access (Phase 2)" type="Boolean"/>
         </targetConfig>
     </targetConfigs>
 </LightningComponentBundle>

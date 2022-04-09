@@ -27,6 +27,10 @@ const dataTypes = {
   'textarea':			                	'string',
   'time':			                    	'string',
   'url':			                    	'url',
+};
+
+const optionDefaults = {
+  urlType: 'hyperlink',
 }
 
 /**
@@ -34,34 +38,66 @@ const dataTypes = {
  * for a data table.
  *
  * @param metaData
+ * @param options
  * @returns {{fieldName, label, type: *}}
  */
-const getColumn = (metaData, urlType) => {
+const getColumn = (metaData, options) => {
   const formula = metaData.calculatedFormula;
+  const optionsMod = {...optionDefaults, ...options};
+  const { urlType } = optionsMod;
 
   // Base definition.
   const column = {
     fieldName: metaData.name,
     label: metaData.label,
-    type: dataTypes[metaData.type]
+    type: getType(metaData, optionsMod),
   };
 
-  // Is hyperlink.
-  if (isHyperlinkFormula(formula)) {
-    column.type = 'url';
+  // Override any formulas to disallow editing.
+  if (formula) {
     column.editable = false;
   }
-  // Is hyperlink with hardcoded label.
-  if (isHyperlinkFormula(formula) && getHyperlinkLabel(formula)) {
+
+  // Add label to the hyperlink.
+  if (isHyperlinkFormula(metaData)) {
     column.typeAttributes = {
-      label: getHyperlinkLabel(formula),
+      ...column.typeAttributes,
+      label: getHyperlinkLabel(formula) ? getHyperlinkLabel(formula) : getHyperlinkUrl(formula),
+    };
+  }
+  // Add button variant.
+  if (isHyperlink(metaData) && getButtonVariant(urlType)) {
+    column.typeAttributes = {
+      ...column.typeAttributes,
+      variant: getButtonVariant(urlType),
+      fieldName: metaData.name,
+      type: 'button',
     };
   }
 
   return column;
 };
 
-const isHyperlinkFormula = (formula) => /hyperlink/i.exec(formula) !== null;
-const getHyperlinkLabel = (formula) => /hyperlink\([^,]+,\s*"(?<label>[^"]+)"/i.exec(formula)?.groups?.label;
+/**
+ * Detect the type of column we have based on what is returned by apex.
+ *
+ * @param metaData
+ * @param options
+ * @returns {string}
+ */
+const getType = (metaData, options) => {
+  // Change an url, to either a link or button.
+  if (isHyperlink(metaData)) {
+    return options.urlType === 'hyperlink' ? 'url' : 'button';
+  }
+  return dataTypes[metaData.type];
+}
+
+const isHyperlink = (metaData) => isHyperlinkFormula(metaData || '') || metaData.type === 'url';
+const isHyperlinkFormula = (metaData) => /hyperlink/i.exec(metaData.calculatedFormula || '') !== null;
+
+const getHyperlinkUrl = (value) => /hyperlink\("(?<url>[^"]+)",/i.exec(value)?.groups?.url;
+const getHyperlinkLabel = (value) => /hyperlink\([^,]+,\s*"(?<label>[^"]+)"/i.exec(value)?.groups?.label;
+const getButtonVariant = (value) => /button-(?<variant>.+)/.exec(value)?.groups?.variant;
 
 export default getColumn;

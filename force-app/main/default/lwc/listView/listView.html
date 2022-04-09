@@ -18,7 +18,8 @@
         if:true={showTable}
         key-field="Id"
         data={data}
-        columns={columns}>
+        columns={columns}
+        onrowaction={onRowAction}>
       </lightning-datatable>
       <div class="datatable-sidebar"></div>
       <div if:true={isLoading} class="spinner-container">
