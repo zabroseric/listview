@@ -36,6 +36,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
   columns = [];
 
   data = [];
+  dataOriginal = [];
   dataTotalCount = [];
   dataMeta = [];
   isLoading = true;
@@ -147,7 +148,8 @@ export default class ListView extends NavigationMixin(LightningElement) {
 
     // Get the rows
     console.debug(`Executing SOQL: ${soql}`);
-    this.data = (await getSObjects({soql: soql})).map((row) => getRow(row));
+    this.dataOriginal = (await getSObjects({soql: soql}));
+    this.data = this.dataOriginal.map((row) => getRow(row));
 
     // Get the total count
     console.debug(`Executing SOQL: ${soqlCount}`);
@@ -164,6 +166,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
     console.debug(`Total Count: ${this.dataTotalCount}`);
     console.debug(this.dataMeta);
     console.table(this.columns);
+    console.table(this.dataOriginal);
     console.table(this.data);
   }
 
