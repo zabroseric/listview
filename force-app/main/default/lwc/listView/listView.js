@@ -28,6 +28,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
   // Interpreted information from passed values.
   sObjectName;
   fields;
+  whereClause;
   iconName;
 
   // Helper variables.
@@ -137,8 +138,11 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @returns {Promise<void>}
    */
   async getData() {
-    let soql = this.soql;
-    let soqlCount = this.soql.replace(/SELECT .+? FROM/i, 'SELECT count(Id) FROM');
+    // Make the list of fields unique and ensure 'Name' is included
+    const fields = [...new Set([...this.fields, 'Name'])];
+
+    let soql = `SELECT ${fields.join(', ')} FROM ${this.sObjectName} ${this.whereClause}`;
+    let soqlCount = `SELECT COUNT(id) FROM ${this.sObjectName} ${this.whereClause}`;
 
     if (/limit [0-9]/gi.exec(soql) !== null && this.pageSize) {
       console.warn('A page size has been added for pagination, but the SOQL has a limit/offset specified. Pagination has been turned off.');
@@ -174,13 +178,14 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * Extract various pieces of the SOQL provided.
    */
   detectSOQLData() {
-    const matchingGroups = /SELECT (?<fields>.+?) FROM (?<sObjectName>[a-z0-9_]+)/i.exec(this.soql)?.groups;
+    const matchingGroups = /SELECT (?<fields>.+?) FROM (?<sObjectName>[a-z0-9_]+)(?<whereClause>.*)/i.exec(this.soql)?.groups;
 
     if (matchingGroups === undefined) {
       console.error(`Error detecting the sobject name and relevant fields, expected format "SELECT % FROM %", "${this.soql}" recieved.`);
     } else {
       this.sObjectName = matchingGroups.sObjectName;
-      this.fields = matchingGroups.fields.split(',').map(field => field.trim());
+      this.fields = matchingGroups.fields.split(',').map(field => field.trim().toLowerCase());
+      this.whereClause = (matchingGroups.whereClause || '').trim();
     }
   }
 

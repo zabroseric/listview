@@ -12,7 +12,7 @@ const dataTypes = {
   'double':		                  		'string',
   'email':			                   	'string',
   'encryptedstring':				        'string',
-  'id':				                      'string',
+  'id':				                      'button',
   'integer':				                'string',
   'json':				                    'string',
   'location':				                'string',
@@ -53,16 +53,20 @@ const getColumn = (metaData, options) => {
     type: dataTypes[metaData.type],
   };
 
-  // Override any formulas to disallow editing.
-  if (formula) {
-    column.editable = false;
+  // If we have an id, show the name and hyperlink it.
+  if(column.fieldName === 'Id') {
+    column.typeAttributes = {
+      label: { fieldName: `Name` },
+      variant: 'base',
+      fieldName: metaData.name,
+      type: 'button',
+    };
   }
 
   // Add label to button.
   if (isHyperlinkFormula(metaData)) {
     column.type = 'button';
     column.typeAttributes = {
-      ...column.typeAttributes,
       label: getHyperlinkStaticLabel(formula) ? getHyperlinkStaticLabel(formula) : { fieldName: `${column.fieldName}-Label` },
       variant: getButtonVariant(urlType),
       fieldName: metaData.name,
