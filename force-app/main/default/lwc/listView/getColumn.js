@@ -2,15 +2,15 @@ const dataTypes = {
   'address':				                'string',
   'anytype':				                'string',
   'base64':				                  'string',
-  'boolean':				                'string',
+  'boolean':				                'boolean',
   'combobox':		                		'string',
   'complexvalue':				            'string',
-  'currency':			                	'string',
+  'currency':			                	'currency',
   'datacategorygroupreference':			'string',
   'date':			                    	'string',
   'datetime':		                		'string',
   'double':		                  		'string',
-  'email':			                   	'string',
+  'email':			                   	'email',
   'encryptedstring':				        'string',
   'id':				                      'button',
   'integer':				                'string',
@@ -71,6 +71,14 @@ const getColumn = (metaData, options) => {
       variant: getButtonVariant(urlType),
       fieldName: metaData.name,
       type: 'button',
+    };
+  }
+
+  // Add the decimal places to the currency.
+  if(column.type === 'currency') {
+    column.typeAttributes = {
+      minimumFractionDigits: metaData.scale,
+      maximumFractionDigits: metaData.scale,
     };
   }
 
