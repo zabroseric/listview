@@ -6,6 +6,7 @@
       title-count={dataTotalCount}
       sub-title={subTitle}
       icon-name={iconName}>
+      <slot slot="buttons" name="buttons"></slot>
     </c-card-heading>
     <div class="slds-border_bottom slds-color__border_gray-6"></div>
     <div if:true={errorUI} class="alert-container">
