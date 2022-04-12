@@ -7,8 +7,8 @@ const dataTypes = {
   'complexvalue':				            'string',
   'currency':			                	'currency',
   'datacategorygroupreference':			'string',
-  'date':			                    	'string',
-  'datetime':		                		'string',
+  'date':			                    	'date',
+  'datetime':		                		'date',
   'double':		                  		'string',
   'email':			                   	'email',
   'encryptedstring':				        'string',
@@ -79,6 +79,27 @@ const getColumn = (metaData, options) => {
     column.typeAttributes = {
       minimumFractionDigits: metaData.scale,
       maximumFractionDigits: metaData.scale,
+    };
+  }
+
+  // Add the format of the date to be as it is on standard screens.
+  if(metaData.type === 'date') {
+    column.typeAttributes = {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+    };
+  }
+
+  // Add the format of the datetime to be as it is on standard screens.
+  if(metaData.type === 'datetime') {
+    column.typeAttributes = {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
     };
   }
 
