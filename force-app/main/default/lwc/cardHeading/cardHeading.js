@@ -9,6 +9,6 @@ export default class CardHeading extends LightningElement {
   @api iconName;
 
   get hasTitleCount() {
-    return this.titleCount && this.titleCount > 0;
+    return this.titleCount || this.titleCount === 0;
   }
 }

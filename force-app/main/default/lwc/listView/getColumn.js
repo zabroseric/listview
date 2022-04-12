@@ -16,10 +16,10 @@ const dataTypes = {
   'integer':				                'number',
   'json':				                    'string',
   'location':				                'location',
-  'long':				                    'string',
+  'long':				                    'number',
   'multipicklist':				          'string',
   'percent':				                'percent',
-  'phone':			                  	'string',
+  'phone':			                  	'phone',
   'picklist':			                	'string',
   'reference':			              	'string',
   'sobject':				                'string',
@@ -87,7 +87,7 @@ const getColumn = (metaData, options) => {
   }
 
   // Add details to standard types based on how they should be displayed.
-  else if (['currency', 'double', 'percent'].includes(metaData.type)) {
+  else if (['currency', 'double', 'percent', 'long'].includes(metaData.type)) {
     column.typeAttributes = {
       minimumFractionDigits: metaData.scale,
       maximumFractionDigits: metaData.scale,

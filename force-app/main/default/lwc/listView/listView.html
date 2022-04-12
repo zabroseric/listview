@@ -28,6 +28,9 @@
       <div if:true={isLoading} class="spinner-container">
         <lightning-spinner alternative-text="Loading" size="medium" variant="brand"></lightning-spinner>
       </div>
+      <div if:true={isDataEmpty} class="empty-container slds-color__background_gray-1">
+        No items to display
+      </div>
     </div>
   </div>
 </template>

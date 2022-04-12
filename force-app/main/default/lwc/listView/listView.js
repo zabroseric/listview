@@ -38,7 +38,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
 
   data = [];
   dataOriginal = [];
-  dataTotalCount = [];
+  dataTotalCount;
   dataMeta = [];
   isLoading = true;
 
@@ -69,6 +69,10 @@ export default class ListView extends NavigationMixin(LightningElement) {
     if (action?.type === 'button') {
       this.navigateUrl(row[action?.fieldName]);
     }
+  }
+
+  get isDataEmpty() {
+    return !this.isLoading && this.data.length === 0;
   }
 
   get showTable() {
