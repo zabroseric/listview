@@ -15,7 +15,7 @@ const dataTypes = {
   'id':				                      'button',
   'integer':				                'number',
   'json':				                    'string',
-  'location':				                'string',
+  'location':				                'location',
   'long':				                    'string',
   'multipicklist':				          'string',
   'percent':				                'string',
@@ -75,7 +75,7 @@ const getColumn = (metaData, options) => {
   }
 
   // Add label to button.
-  if (isHyperlinkFormula(metaData)) {
+  else if (isHyperlinkFormula(metaData)) {
     column.type = 'button';
     column.typeAttributes = {
       label: getHyperlinkStaticLabel(formula) ? getHyperlinkStaticLabel(formula) : { fieldName: `${column.fieldName}-Label` },
@@ -85,25 +85,28 @@ const getColumn = (metaData, options) => {
     };
   }
 
-  // Add the decimal places to the currency.
-  if(column.type === 'currency' || column.type === 'double') {
+  // Add details to standard types based on how they should be displayed.
+  else if (metaData.type === 'currency' || metaData.type === 'double') {
     column.typeAttributes = {
       minimumFractionDigits: metaData.scale,
       maximumFractionDigits: metaData.scale,
     };
   }
-
-  // Add the format of the date to be as it is on standard screens.
-  if(metaData.type === 'date') {
+  else if (metaData.type === 'date') {
     column.typeAttributes = {
       year: 'numeric',
       month: 'numeric',
       day: 'numeric',
     };
   }
-
-  // Add the format of the datetime to be as it is on standard screens.
-  if(metaData.type === 'datetime') {
+  else if (metaData.type === 'date') {
+    column.typeAttributes = {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+    };
+  }
+  else if (metaData.type === 'datetime') {
     column.typeAttributes = {
       year: 'numeric',
       month: 'numeric',
@@ -113,13 +116,17 @@ const getColumn = (metaData, options) => {
       hour12: true,
     };
   }
-
-  // Add the format of the datetime to be as it is on standard screens.
-  if(metaData.type === 'time') {
+  else if (metaData.type === 'time') {
     column.typeAttributes = {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
+    };
+  }
+  else if (metaData.type === 'location') {
+    column.typeAttributes = {
+      latitude: `${column.fieldName}-Latitude`,
+      longitude: `${column.fieldName}-Longitude`,
     };
   }
 
