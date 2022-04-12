@@ -161,7 +161,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
     // Get the rows
     console.debug(`Executing SOQL: ${soql}`);
     this.dataOriginal = (await getSObjects({soql: soql}));
-    this.data = this.dataOriginal.map((row) => getRow(row));
+    this.data = this.dataOriginal.map((row) => getRow(row, this.columns));
 
     // Get the total count
     console.debug(`Executing SOQL: ${soqlCount}`);

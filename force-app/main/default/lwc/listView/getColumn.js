@@ -18,7 +18,7 @@ const dataTypes = {
   'location':				                'location',
   'long':				                    'string',
   'multipicklist':				          'string',
-  'percent':				                'string',
+  'percent':				                'percent',
   'phone':			                  	'string',
   'picklist':			                	'string',
   'reference':			              	'string',
@@ -87,7 +87,7 @@ const getColumn = (metaData, options) => {
   }
 
   // Add details to standard types based on how they should be displayed.
-  else if (metaData.type === 'currency' || metaData.type === 'double') {
+  else if (['currency', 'double', 'percent'].includes(metaData.type)) {
     column.typeAttributes = {
       minimumFractionDigits: metaData.scale,
       maximumFractionDigits: metaData.scale,
