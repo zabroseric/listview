@@ -25,7 +25,7 @@ const dataTypes = {
   'sobject':				                'string',
   'string':				                  'string',
   'textarea':			                	'string',
-  'time':			                    	'string',
+  'time':			                    	'date',
   'url':			                    	'url',
 };
 
@@ -97,7 +97,16 @@ const getColumn = (metaData, options) => {
       year: 'numeric',
       month: 'numeric',
       day: 'numeric',
-      hour: '2-digit',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    };
+  }
+
+  // Add the format of the datetime to be as it is on standard screens.
+  if(metaData.type === 'time') {
+    column.typeAttributes = {
+      hour: 'numeric',
       minute: '2-digit',
       hour12: true,
     };
