@@ -77,6 +77,7 @@ const getColumn = (metaData, options) => {
   // Add label to button.
   else if (isHyperlinkFormula(metaData)) {
     column.type = 'button';
+    column.cellAttributes = { alignment: 'center' };
     column.typeAttributes = {
       label: getHyperlinkStaticLabel(formula) ? getHyperlinkStaticLabel(formula) : { fieldName: `${column.fieldName}-Label` },
       variant: getButtonVariant(urlType),
