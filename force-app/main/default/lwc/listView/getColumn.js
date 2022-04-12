@@ -67,7 +67,7 @@ const getColumn = (metaData, options) => {
   // If we have an id, show the name and hyperlink it.
   if(column.fieldName === 'Id') {
     column.typeAttributes = {
-      label: { fieldName: `Name` },
+      label: { fieldName: 'Name' },
       variant: 'base',
       fieldName: metaData.name,
       type: 'button',
@@ -77,7 +77,7 @@ const getColumn = (metaData, options) => {
   // Add label to button.
   else if (isHyperlinkFormula(metaData)) {
     column.type = 'button';
-    column.cellAttributes = { alignment: 'center' };
+    column.cellAttributes = { alignment: getButtonVariant(urlType) === 'base' ? 'left' : 'center' };
     column.typeAttributes = {
       label: getHyperlinkStaticLabel(formula) ? getHyperlinkStaticLabel(formula) : { fieldName: `${column.fieldName}-Label` },
       variant: getButtonVariant(urlType),
