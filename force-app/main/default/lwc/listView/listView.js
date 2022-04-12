@@ -55,7 +55,6 @@ export default class ListView extends NavigationMixin(LightningElement) {
       await this.getData();
     } catch (e) {
       this.addErrorUI(e?.body?.message || e?.message || e);
-      console.error(e?.body || e?.message);
     } finally {
       this.isLoading = false;
       this.debugFields();
@@ -95,6 +94,8 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @param error
    */
   addErrorUI(error) {
+    console.error(error);
+
     // If we are not in page builder, simply provide a generic error.
     if (!this.isPageBuilder) {
       this.errorUI = errorMessageGeneric;
@@ -188,7 +189,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
     const matchingGroups = /SELECT (?<fields>.+?) FROM (?<sObjectName>[a-z0-9_]+)(?<whereClause>.*)/i.exec(this.soql)?.groups;
 
     if (matchingGroups === undefined) {
-      console.error(`Error detecting the sobject name and relevant fields, expected format "SELECT % FROM %", "${this.soql}" recieved.`);
+      throw (`Error detecting the sobject name and relevant fields, expected format "SELECT % FROM %", "${this.soql}" received.`);
     } else {
       this.sObjectName = matchingGroups.sObjectName;
       this.fields = matchingGroups.fields.split(',').map(field => field.trim().toLowerCase());
