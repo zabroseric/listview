@@ -31,6 +31,7 @@ const dataTypes = {
 
 const optionDefaults = {
   urlType: 'button-base',
+  fieldName: undefined, // Original field name provided (useful if the column is invalid).
 }
 
 /**
@@ -42,6 +43,16 @@ const optionDefaults = {
  * @returns {{fieldName, label, type: *}}
  */
 const getColumn = (metaData, options) => {
+  // If we haven't been passed metadata, return an empty column.
+  if (!metaData) {
+    return {
+      fieldName: undefined,
+      label: options.fieldName,
+      type: 'string',
+      editable: false,
+    }
+  }
+
   const formula = metaData.calculatedFormula;
   const optionsMod = {...optionDefaults, ...options};
   const { urlType } = optionsMod;

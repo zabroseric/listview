@@ -51,8 +51,8 @@ export default class ListView extends NavigationMixin(LightningElement) {
       this.detectSOQLData();
       this.detectIcon();
 
-      // Run both process in multiple threads for performance.
-      await Promise.all([this.getMetaData(), this.getData()]);
+      await this.getMetaData();
+      await this.getData();
     } catch (e) {
       this.addErrorUI(e?.body?.message || e?.message || e);
       console.error(e?.body || e?.message);
@@ -123,11 +123,18 @@ export default class ListView extends NavigationMixin(LightningElement) {
     const dataMeta = this.dataMeta = await getSObjectFields({sObjectName: this.sObjectName});
 
     this.columns = this.fields
-      .map((field) => field.toLowerCase()) // Convert to lowercase
-      .map((field) => dataMeta[field]) // Get the respective metadata
-      .map((field) => getColumn(field, { // Generate the column
+      .map((field) => field.toLowerCase()) // Convert to lowercase.
+      .map((field) => dataMeta[field]) // Get the respective metadata.
+      .map((field, index) => getColumn(field, { // Generate the columns and pass options.
         urlType: this.urlType,
+        fieldName: this.fields[index],
       }))
+    ;
+
+    // Change the fields to a list of valid ones based on the metadata.
+    this.fields = this.columns
+      .map((column) => column.fieldName)
+      .filter((value) => value)
     ;
   }
 
