@@ -9,11 +9,11 @@ const dataTypes = {
   'datacategorygroupreference':			'string',
   'date':			                    	'date',
   'datetime':		                		'date',
-  'double':		                  		'string',
+  'double':		                  		'number',
   'email':			                   	'email',
   'encryptedstring':				        'string',
   'id':				                      'button',
-  'integer':				                'string',
+  'integer':				                'number',
   'json':				                    'string',
   'location':				                'string',
   'long':				                    'string',
@@ -75,7 +75,7 @@ const getColumn = (metaData, options) => {
   }
 
   // Add the decimal places to the currency.
-  if(column.type === 'currency') {
+  if(column.type === 'currency' || column.type === 'double') {
     column.typeAttributes = {
       minimumFractionDigits: metaData.scale,
       maximumFractionDigits: metaData.scale,
