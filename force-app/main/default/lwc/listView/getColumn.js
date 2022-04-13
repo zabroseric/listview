@@ -1,34 +1,34 @@
 import {filterObj, mergeOptions, titleCase} from "./utils";
 
 const dataTypes = {
-  'address':				                'string',
-  'anytype':				                'string',
-  'base64':				                  'string',
-  'boolean':				                'boolean',
-  'combobox':		                		'string',
-  'complexvalue':				            'string',
-  'currency':			                	'currency',
-  'datacategorygroupreference':			'string',
-  'date':			                    	'date',
-  'datetime':		                		'date',
-  'double':		                  		'number',
-  'email':			                   	'email',
-  'encryptedstring':				        'string',
-  'id':				                      'button',
-  'integer':				                'number',
-  'json':				                    'string',
-  'location':				                'location',
-  'long':				                    'number',
-  'multipicklist':				          'string',
-  'percent':				                'percent',
-  'phone':			                  	'phone',
-  'picklist':			                	'string',
-  'reference':			              	'string',
-  'sobject':				                'string',
-  'string':				                  'string',
-  'textarea':			                	'string',
-  'time':			                    	'date',
-  'url':			                    	'url',
+  'address': 'string',
+  'anytype': 'string',
+  'base64': 'string',
+  'boolean': 'boolean',
+  'combobox': 'string',
+  'complexvalue': 'string',
+  'currency': 'currency',
+  'datacategorygroupreference': 'string',
+  'date': 'date',
+  'datetime': 'date',
+  'double': 'number',
+  'email': 'email',
+  'encryptedstring': 'string',
+  'id': 'button',
+  'integer': 'number',
+  'json': 'string',
+  'location': 'location',
+  'long': 'number',
+  'multipicklist': 'string',
+  'percent': 'percent',
+  'phone': 'phone',
+  'picklist': 'string',
+  'reference': 'string',
+  'sobject': 'string',
+  'string': 'string',
+  'textarea': 'string',
+  'time': 'date',
+  'url': 'url',
 };
 
 const optionDefaults = {
@@ -58,89 +58,98 @@ const getColumn = (metaData, options) => {
   }
 
   const formula = metaData.calculatedFormula;
-  const { urlType, nameField, nameFieldLabel } = mergeOptions(optionDefaults, options);
+  const {urlType, nameField, nameFieldLabel} = mergeOptions(optionDefaults, options);
 
   // Base definition.
-  const column = {
+  const columnBase = {
     fieldName: metaData.name,
-    label: metaData.label,
+    label: !isColumnHide(metaData) ? metaData.label : '',
     type: dataTypes[metaData.type],
   };
 
   // If we have an id, show the name and hyperlink it.
-  if(column.fieldName === 'Id') {
-    column.label = nameFieldLabel;
-    column.typeAttributes = {
-      label: { fieldName: nameField },
-      variant: 'base',
-      fieldName: metaData.name,
-      type: 'button',
+  if (metaData.name === 'Id') {
+    return {
+      ...columnBase,
+      label: nameFieldLabel,
+      typeAttributes: {
+        label: {fieldName: nameField},
+        variant: 'base',
+        fieldName: metaData.name,
+        type: 'button',
+      }
     };
   }
 
   // Add label to button.
-  else if (isHyperlinkFormula(metaData)) {
-    column.type = 'button';
-    column.cellAttributes = { alignment: getButtonVariant(urlType) === 'base' ? 'left' : 'center' };
-    column.typeAttributes = {
-      label: getHyperlinkStaticLabel(formula) ? getHyperlinkStaticLabel(formula) : { fieldName: `${column.fieldName}-Label` },
-      variant: getButtonVariant(urlType),
-      fieldName: metaData.name,
+  if (isHyperlinkFormula(metaData)) {
+    return {
+      ...columnBase,
       type: 'button',
+      cellAttributes: {alignment: getButtonVariant(urlType) === 'base' ? 'left' : 'center'},
+      typeAttributes: {
+        label: getHyperlinkStaticLabel(formula) ? getHyperlinkStaticLabel(formula) : {fieldName: `${columnBase.fieldName}-Label`},
+        variant: getButtonVariant(urlType),
+        fieldName: metaData.name,
+        type: 'button',
+      }
     };
   }
 
   // Add details to standard types based on how they should be displayed.
-  else if (['currency', 'double', 'percent', 'long'].includes(metaData.type)) {
-    column.typeAttributes = {
-      minimumFractionDigits: metaData.scale,
-      maximumFractionDigits: metaData.scale,
-    };
+  switch (metaData.type) {
+    case 'currency':
+    case 'double':
+    case 'percent':
+    case 'long':
+      return {
+        ...columnBase,
+        typeAttributes: {
+          minimumFractionDigits: metaData.scale,
+          maximumFractionDigits: metaData.scale,
+        },
+      };
+    case 'date':
+      return {
+        ...columnBase,
+        typeAttributes: {
+          year: 'numeric',
+          month: 'numeric',
+          day: 'numeric',
+        },
+      };
+    case 'datetime':
+      return {
+        ...columnBase,
+        typeAttributes: {
+          year: 'numeric',
+          month: 'numeric',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+        },
+      };
+    case 'time':
+      return {
+        ...columnBase,
+        typeAttributes: {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+        },
+      };
+    case 'location':
+      return {
+        ...columnBase,
+        typeAttributes: {
+          latitude: `${columnBase.fieldName}-Latitude`,
+          longitude: `${columnBase.fieldName}-Longitude`,
+        },
+      };
+    default:
+      return columnBase;
   }
-  else if (metaData.type === 'date') {
-    column.typeAttributes = {
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric',
-    };
-  }
-  else if (metaData.type === 'date') {
-    column.typeAttributes = {
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric',
-    };
-  }
-  else if (metaData.type === 'datetime') {
-    column.typeAttributes = {
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    };
-  }
-  else if (metaData.type === 'time') {
-    column.typeAttributes = {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    };
-  }
-  else if (metaData.type === 'location') {
-    column.typeAttributes = {
-      latitude: `${column.fieldName}-Latitude`,
-      longitude: `${column.fieldName}-Longitude`,
-    };
-  }
-
-  // Is a column hide label.
-  if (isColumnHide(metaData)) {
-    column.label = '';
-  }
-
-  return column;
 };
 
 const isHyperlinkFormula = (metaData) => /hyperlink/i.exec(metaData.calculatedFormula || '') !== null;
