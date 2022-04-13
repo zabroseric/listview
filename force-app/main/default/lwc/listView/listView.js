@@ -5,7 +5,6 @@ import getSObjectFields from '@salesforce/apex/ListViewController.getSObjectFiel
 import {NavigationMixin} from "lightning/navigation";
 import getColumn from './getColumn';
 import getRow from "./getRow";
-import {titleCase} from "./utils";
 
 const errorMessageGeneric = 'An unknown error occurred, please contact support.';
 
@@ -49,6 +48,8 @@ export default class ListView extends NavigationMixin(LightningElement) {
   dataTotalCount;
   dataMeta = [];
   isLoading = true;
+  nameField;
+  nameFieldLabel;
 
   /**
    * Runs the main process of detecting information based on arguments and runs
@@ -85,6 +86,25 @@ export default class ListView extends NavigationMixin(LightningElement) {
 
   get showTable() {
     return !this.errorUI && !this.isLoading;
+  }
+
+  /**
+   * Gets a list of fields that have been filtered to only those
+   * that are valid on the object itself.
+   *
+   * @returns {*[]}
+   */
+  get fieldsValid() {
+    const fields = this.columns
+      .map((column) => column.fieldName)
+      .filter((value) => value)
+    ;
+
+    // Add the name field if it exists on the object
+    this.nameField && fields.push(this.nameField);
+
+    // Make sure the list of fields are unique.
+    return [...new Set([...fields])];
   }
 
   /**
@@ -136,9 +156,9 @@ export default class ListView extends NavigationMixin(LightningElement) {
     const dataMeta = this.dataMeta = await getSObjectFields({sObjectName: this.sObjectName});
 
     // Get the name of the object, if we can't find the field, manually replace it with 'Unknown'.
-    const nameField = this.dataMeta[(nameFields[this.sObjectName] ?? nameFields['default'])?.toLowerCase()]?.name;
-    const nameFieldLabel = this.dataMeta[nameField?.toLowerCase()]?.label
-      ?.replace('Full Name', 'Contact Name') // Manually replace for Contacts
+    this.nameField = this.dataMeta[(nameFields[this.sObjectName] ?? nameFields['default'])?.toLowerCase()]?.name;
+    this.nameFieldLabel = this.dataMeta[this.nameField?.toLowerCase()]?.label
+      ?.replace('Full Name', 'Contact Name')
     ;
 
     this.columns = this.fields
@@ -147,22 +167,10 @@ export default class ListView extends NavigationMixin(LightningElement) {
       .map((field, index) => getColumn(field, { // Generate the columns and pass options.
         urlType: this.urlType,
         fieldName: this.fields[index],
-        nameField: nameField ?? 'unknown',
-        nameFieldLabel: nameFieldLabel ?? `${titleCase(this.sObjectName)} Name`,
+        nameField: this.nameField,
+        nameFieldLabel: this.nameFieldLabel,
       }))
     ;
-
-    // Change the fields to a list of valid ones based on the metadata.
-    const fields = this.columns
-      .map((column) => column.fieldName)
-      .filter((value) => value)
-    ;
-
-    // Add the name field if it exists on the object
-    nameField && fields.push(nameField);
-
-    // Make sure the list of fields are unique.
-    this.fields = [...new Set([...fields])];
   }
 
   /**
@@ -172,7 +180,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @returns {Promise<void>}
    */
   async getData() {
-    let soql = `SELECT ${this.fields.join(', ')} FROM ${this.sObjectName} ${this.whereClause}`;
+    let soql = `SELECT ${this.fieldsValid.join(', ')} FROM ${this.sObjectName} ${this.whereClause}`;
     let soqlCount = `SELECT COUNT(id) FROM ${this.sObjectName} ${this.whereClause}`;
 
     if (/limit [0-9]/gi.exec(soql) !== null && this.pageSize) {

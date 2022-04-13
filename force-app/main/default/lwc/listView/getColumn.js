@@ -1,3 +1,5 @@
+import {filterObj, mergeOptions, titleCase} from "./utils";
+
 const dataTypes = {
   'address':				                'string',
   'anytype':				                'string',
@@ -32,9 +34,9 @@ const dataTypes = {
 const optionDefaults = {
   urlType: 'button-base',
   fieldName: undefined, // Original field name provided (useful if the column is invalid).
-  nameField: undefined, // Defines the object main reference (e.g. Name, CaseNumber ..etc).
-  nameFieldLabel: undefined, // Defines the object main reference (e.g. Name, CaseNumber ..etc).
-}
+  nameField: 'unknown', // Defines the object main reference (e.g. Name, CaseNumber ..etc).
+  nameFieldLabel: 'Name', // Defines the object main reference (e.g. Name, CaseNumber ..etc).
+};
 
 /**
  * Converts metadata generated from the DescribeFieldResult query into a column to be used
@@ -56,8 +58,7 @@ const getColumn = (metaData, options) => {
   }
 
   const formula = metaData.calculatedFormula;
-  const optionsMod = {...optionDefaults, ...options};
-  const { urlType, nameField, nameFieldLabel } = optionsMod;
+  const { urlType, nameField, nameFieldLabel } = mergeOptions(optionDefaults, options);
 
   // Base definition.
   const column = {
