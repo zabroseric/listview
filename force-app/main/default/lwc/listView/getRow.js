@@ -3,7 +3,7 @@ import {getCell} from "./getCell";
 /**
  * Manipulates the row values before rendering it into the datatable.
  */
-export const getRow = (row, columns) => {
+const getRow = (row, columns) => {
   const rowReturn = {};
   for (let key in row) {
     const value = row[key];
@@ -22,6 +22,10 @@ export const getRow = (row, columns) => {
       }
     }
   }
+
+  // Add an unknown column, in the situations we want to show the word "Unknown" to users.
+  rowReturn['unknown'] = 'Unknown';
+
   return rowReturn;
 }
 
@@ -30,3 +34,5 @@ const getLatitude = (value) => value?.latitude;
 const getLongitude = (value) => value?.longitude
 
 const getColumn = (columns, fieldName) => columns.find((column) => column.fieldName === fieldName);
+
+export default getRow;

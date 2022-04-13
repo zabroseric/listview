@@ -4,9 +4,17 @@ import getSObjectCount from '@salesforce/apex/ListViewController.getSObjectCount
 import getSObjectFields from '@salesforce/apex/ListViewController.getSObjectFields'
 import {NavigationMixin} from "lightning/navigation";
 import getColumn from './getColumn';
-import {getRow} from "./getRow";
+import getRow from "./getRow";
+import {titleCase} from "./utils";
 
 const errorMessageGeneric = 'An unknown error occurred, please contact support.';
+
+// The name field to be used when an id is referenced.
+const nameFields = {
+  'case': 'CaseNumber',
+  'order': 'OrderNumber',
+  'default': 'Name',
+}
 
 export default class ListView extends NavigationMixin(LightningElement) {
 
@@ -127,20 +135,34 @@ export default class ListView extends NavigationMixin(LightningElement) {
     console.debug(`Retrieving a list of fields.`);
     const dataMeta = this.dataMeta = await getSObjectFields({sObjectName: this.sObjectName});
 
+    // Get the name of the object, if we can't find the field, manually replace it with 'Unknown'.
+    const nameField = this.dataMeta[(nameFields[this.sObjectName] ?? nameFields['default'])?.toLowerCase()]?.name;
+    const nameFieldLabel = this.dataMeta[nameField?.toLowerCase()]?.label
+      ?.replace('Full Name', 'Contact Name') // Manually replace for Contacts
+    ;
+
     this.columns = this.fields
       .map((field) => field.toLowerCase()) // Convert to lowercase.
       .map((field) => dataMeta[field]) // Get the respective metadata.
       .map((field, index) => getColumn(field, { // Generate the columns and pass options.
         urlType: this.urlType,
         fieldName: this.fields[index],
+        nameField: nameField ?? 'unknown',
+        nameFieldLabel: nameFieldLabel ?? `${titleCase(this.sObjectName)} Name`,
       }))
     ;
 
     // Change the fields to a list of valid ones based on the metadata.
-    this.fields = this.columns
+    const fields = this.columns
       .map((column) => column.fieldName)
       .filter((value) => value)
     ;
+
+    // Add the name field if it exists on the object
+    nameField && fields.push(nameField);
+
+    // Make sure the list of fields are unique.
+    this.fields = [...new Set([...fields])];
   }
 
   /**
@@ -150,10 +172,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @returns {Promise<void>}
    */
   async getData() {
-    // Make the list of fields unique and ensure 'Name' is included
-    const fields = [...new Set([...this.fields, 'Name'])];
-
-    let soql = `SELECT ${fields.join(', ')} FROM ${this.sObjectName} ${this.whereClause}`;
+    let soql = `SELECT ${this.fields.join(', ')} FROM ${this.sObjectName} ${this.whereClause}`;
     let soqlCount = `SELECT COUNT(id) FROM ${this.sObjectName} ${this.whereClause}`;
 
     if (/limit [0-9]/gi.exec(soql) !== null && this.pageSize) {
@@ -195,7 +214,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
     if (matchingGroups === undefined) {
       throw (`Error detecting the sobject name and relevant fields, expected format "SELECT % FROM %", "${this.soql}" received.`);
     } else {
-      this.sObjectName = matchingGroups.sObjectName;
+      this.sObjectName = matchingGroups.sObjectName.toLowerCase();
       this.fields = matchingGroups.fields.split(',').map(field => field.trim().toLowerCase());
       this.whereClause = (matchingGroups.whereClause || '').trim();
     }

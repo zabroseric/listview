@@ -32,6 +32,8 @@ const dataTypes = {
 const optionDefaults = {
   urlType: 'button-base',
   fieldName: undefined, // Original field name provided (useful if the column is invalid).
+  nameField: undefined, // Defines the object main reference (e.g. Name, CaseNumber ..etc).
+  nameFieldLabel: undefined, // Defines the object main reference (e.g. Name, CaseNumber ..etc).
 }
 
 /**
@@ -55,7 +57,7 @@ const getColumn = (metaData, options) => {
 
   const formula = metaData.calculatedFormula;
   const optionsMod = {...optionDefaults, ...options};
-  const { urlType } = optionsMod;
+  const { urlType, nameField, nameFieldLabel } = optionsMod;
 
   // Base definition.
   const column = {
@@ -66,8 +68,9 @@ const getColumn = (metaData, options) => {
 
   // If we have an id, show the name and hyperlink it.
   if(column.fieldName === 'Id') {
+    column.label = nameFieldLabel;
     column.typeAttributes = {
-      label: { fieldName: 'Name' },
+      label: { fieldName: nameField },
       variant: 'base',
       fieldName: metaData.name,
       type: 'button',
