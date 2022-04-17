@@ -10,7 +10,7 @@ import {logApexFunc} from "./utils";
 const errorMessageGeneric = 'An unknown error occurred, please contact support.';
 const pageSizeMax = 1000;
 
-// Wrap the apex functions using a decorative pattern.
+// Wrap the apex functions using a decorative pattern for logging.
 const getSObjects = logApexFunc('getSObjects', getSObjectsApex);
 const getSObjectCount = logApexFunc('getSObjectCount', getSObjectCountApex);
 const getSObjectFields = logApexFunc('getSObjectFields', getSObjectFieldsApex);
@@ -69,12 +69,17 @@ export default class ListView extends NavigationMixin(LightningElement) {
       await this.getMetaData();
       await Promise.all([this.getDataCount(), this.getData()]);
     } catch (e) {
-      this.addErrorUI(e);
+      this.onError(e);
     } finally {
       this.isLoading = false;
     }
   }
 
+  /**
+   * When a button is clicked in a row, handle the event.
+   *
+   * @param event
+   */
   onRowAction(event) {
     const action = event.detail.action;
     const row = event.detail.row;
@@ -178,30 +183,27 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * Navigate the user to a specific URL.
    */
   navigateUrl(url) {
-    const config = {
+    this[NavigationMixin.Navigate]({
       type: 'standard__webPage',
       attributes: {
         url: url
       }
-    };
-    this[NavigationMixin.Navigate](config);
+    });
   }
 
   /**
-   * Adds an error to the UI depending on where we are.
+   * Adds an error to the UI depending on where we are and logs
+   * the error to the console.
    *
    * @param error
    */
-  addErrorUI(error) {
-    console.error(error);
-
-    // If we are not in page builder, simply provide a generic error.
+  onError(error) {
     if (!this.isPageBuilder) {
       this.errorUI = errorMessageGeneric;
-      return;
+    } else {
+      this.errorUI = (this.errorUI ? '' : '\n') + error;
     }
-    // Add the errors together.
-    this.errorUI = (this.errorUI ? '' : '\n') + error;
+    console.error(error);
   }
 
   /**
@@ -246,7 +248,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
     this.isLoading = true;
 
     this.getData()
-      .catch((e) => this.addErrorUI(e))
+      .catch((e) => this.onError(e))
       .finally(() => this.isLoading = false)
     ;
   }

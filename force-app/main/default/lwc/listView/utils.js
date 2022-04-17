@@ -30,7 +30,7 @@ export const filterObj = (obj) => {
 export const mergeOptions = (objDefaults, objOptions) => ({...objDefaults, ...filterObj(objOptions)});
 
 /**
- * Creates a decorative pattern to debug function calls and returns any errors.
+ * A decorative pattern to debug function calls and returns errors in a more useable form.
  *
  * @param funcName
  * @param func
