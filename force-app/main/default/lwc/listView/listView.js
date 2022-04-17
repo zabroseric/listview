@@ -1,13 +1,19 @@
 import {api, LightningElement} from 'lwc';
-import getSObjects from '@salesforce/apex/ListViewController.getSObjects'
-import getSObjectCount from '@salesforce/apex/ListViewController.getSObjectCount'
-import getSObjectFields from '@salesforce/apex/ListViewController.getSObjectFields'
+import getSObjectsApex from '@salesforce/apex/ListViewController.getSObjects'
+import getSObjectCountApex from '@salesforce/apex/ListViewController.getSObjectCount'
+import getSObjectFieldsApex from '@salesforce/apex/ListViewController.getSObjectFields'
 import {NavigationMixin} from "lightning/navigation";
 import getColumn from './getColumn';
 import getRow from "./getRow";
+import {logApexFunc} from "./utils";
 
 const errorMessageGeneric = 'An unknown error occurred, please contact support.';
 const pageSizeMax = 1000;
+
+// Wrap the apex functions using a decorative pattern.
+const getSObjects = logApexFunc('getSObjects', getSObjectsApex);
+const getSObjectCount = logApexFunc('getSObjectCount', getSObjectCountApex);
+const getSObjectFields = logApexFunc('getSObjectFields', getSObjectFieldsApex);
 
 // The name field to be used when an id is referenced.
 const nameFields = {
@@ -42,15 +48,14 @@ export default class ListView extends NavigationMixin(LightningElement) {
   // Helper variables.
   errorUI;
   dataOffset = 0;
-  columns = [];
-
-  data = [];
-  dataOriginal = [];
   dataTotalCount;
-  dataMeta = [];
-  isLoading = true;
   nameField;
   nameFieldLabel;
+  isLoading = true;
+
+  columns = [];
+  data = [];
+  dataMeta = [];
 
   /**
    * Runs the main process of detecting information based on arguments and runs
@@ -68,7 +73,6 @@ export default class ListView extends NavigationMixin(LightningElement) {
       this.addErrorUI(e);
     } finally {
       this.isLoading = false;
-      this.debugFields();
     }
   }
 
@@ -186,8 +190,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @param error
    */
   addErrorUI(error) {
-    const errorSpread = error?.body?.message || error?.message || error;
-    console.error(errorSpread);
+    console.error(error);
 
     // If we are not in page builder, simply provide a generic error.
     if (!this.isPageBuilder) {
@@ -195,7 +198,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
       return;
     }
     // Add the errors together.
-    this.errorUI = (this.errorUI ? '' : '\n') + errorSpread;
+    this.errorUI = (this.errorUI ? '' : '\n') + error;
   }
 
   /**
@@ -213,8 +216,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @returns {Promise<void>}
    */
   async getMetaData() {
-    console.debug(`Retrieving a list of fields.`);
-    const dataMeta = this.dataMeta = await getSObjectFields({sObjectName: this.sObjectName});
+    const dataMeta = this.dataMeta = this.debug = await getSObjectFields({sObjectName: this.sObjectName});
 
     // Get the name of the object, if we can't find the field, manually replace it with 'Unknown'.
     this.nameField = this.dataMeta[(nameFields[this.sObjectName] ?? nameFields['default'])?.toLowerCase()]?.name;
@@ -222,7 +224,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
       ?.replace('Full Name', 'Contact Name')
     ;
 
-    this.columns = this.fields
+    this.columns = this.debug = this.fields
       .map((field) => field.toLowerCase()) // Convert to lowercase.
       .map((field) => dataMeta[field]) // Get the respective metadata.
       .map((field, index) => getColumn(field, { // Generate the columns and pass options.
@@ -236,26 +238,13 @@ export default class ListView extends NavigationMixin(LightningElement) {
 
   /**
    * Get data for the list view from the apex class.
-   * Note: This also adds the limit and offset based on our current position.
    *
    * @returns {Promise<void>}
    */
   async getData() {
-    let soql = `
-        SELECT ${this.fieldsValid.join(', ')}
-        FROM ${this.sObjectName} ${this.whereClause}
-    `;
-
-    if (/limit [0-9]/gi.exec(soql) !== null && this.pageSize) {
-      console.warn('A page size has been added for pagination, but the SOQL has a limit/offset specified. Pagination has been turned off.');
-    } else if (this.pageSize) {
-      soql += `LIMIT ${this.pageSize ?? pageSizeMax} OFFSET ${this.dataOffset}`;
-    }
-
-    // Get the rows
-    console.debug(`Executing SOQL: ${soql}`);
-    this.dataOriginal = (await getSObjects({soql: soql}));
-    this.data = this.dataOriginal.map((row) => getRow(row, this.columns));
+    this.data = this.logTable = (await getSObjects({
+      soql: `SELECT ${this.fieldsValid.join(', ')} FROM ${this.sObjectName} ${this.whereClause} LIMIT ${this.pageSize ?? pageSizeMax} OFFSET ${this.dataOffset}`
+    })).map((row) => getRow(row, this.columns));
   }
 
   /**
@@ -264,42 +253,27 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @returns {Promise<void>}
    */
   async getDataCount() {
-    let soqlCount = `
-        SELECT COUNT(id)
-        FROM ${this.sObjectName} ${this.whereClause}
-    `;
-
-    // Get the total count
-    console.debug(`Executing SOQL: ${soqlCount}`);
-    this.dataTotalCount = await getSObjectCount({soql: soqlCount});
-  }
-
-  /**
-   * Debug all information that we've got.
-   */
-  debugFields() {
-    console.debug(`SObject: ${this.sObjectName}`);
-    console.debug(`Fields: ${this.fields}`);
-    console.debug(`Icon: ${this.iconName}`);
-    console.debug(`Total Count: ${this.dataTotalCount}`);
-    console.debug(this.dataMeta);
-    console.table(this.columns);
-    console.table(this.dataOriginal);
-    console.table(this.data);
+    this.dataTotalCount = await getSObjectCount({
+      soql: `SELECT COUNT(id) FROM ${this.sObjectName} ${this.whereClause}`
+    });
   }
 
   /**
    * Extract various pieces of the SOQL provided.
    */
   detectSOQLData() {
-    const matchingGroups = /SELECT (?<fields>.+?) FROM (?<sObjectName>[a-z0-9_]+)(?<whereClause>.*)/i.exec(this.soql)?.groups;
+    const matchingGroups = /SELECT (?<fields>.+?) FROM (?<sObjectName>[a-z0-9_]+)(?<whereClause>.*)?/i.exec(this.soql)?.groups;
 
     if (matchingGroups === undefined) {
       throw (`Error detecting the sobject name and relevant fields, expected format "SELECT % FROM %", "${this.soql}" received.`);
     } else {
       this.sObjectName = matchingGroups.sObjectName.toLowerCase();
       this.fields = matchingGroups.fields.split(',').map(field => field.trim().toLowerCase());
-      this.whereClause = (matchingGroups.whereClause || '').trim();
+      this.whereClause = (matchingGroups.whereClause || '').replace(/(limit|offset) [0-9].*/i, '').trim();
+
+      if (/(limit|offset) [0-9].*/i.exec(this.soql)) {
+        console.warn('A limit or offset has been detected, and has been removed as pagination should be used as an alternative.');
+      }
     }
   }
 
@@ -336,5 +310,25 @@ export default class ListView extends NavigationMixin(LightningElement) {
     // Auto detect - custom SObject.
     this.iconName = undefined;
     // TODO: Implement this from tab.
+  }
+
+  /**
+   * As an alternative to a class variable decorator, we can debug a value
+   * directly by setting the output to be the debug class variable.
+   *
+   * @param value
+   */
+  set debug(value) {
+    console.debug(value);
+  }
+
+  /**
+   * As an alternative to a class variable decorator, we can log a table value
+   * directly by setting the output to be the logTable class variable.
+   *
+   * @param value
+   */
+  set logTable(value) {
+    console.table(value);
   }
 }

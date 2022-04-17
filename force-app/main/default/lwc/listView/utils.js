@@ -28,3 +28,24 @@ export const filterObj = (obj) => {
  * @param objOptions
  */
 export const mergeOptions = (objDefaults, objOptions) => ({...objDefaults, ...filterObj(objOptions)});
+
+/**
+ * Creates a decorative pattern to debug function calls and returns any errors.
+ *
+ * @param funcName
+ * @param func
+ * @returns {function(...[*]): *}
+ */
+export const logApexFunc = (funcName, func) => {
+  return async (...props) => {
+    try {
+      console.debug(`Running ${funcName} with props: `, ...props);
+      const result = await func(...props);
+      console.debug(`Result of ${funcName}:`, result);
+      return result;
+    }
+    catch (e) {
+      throw e?.body?.message || e?.message || e;
+    }
+  }
+}
