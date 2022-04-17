@@ -8,16 +8,30 @@
   justify-content: center;
   height: 120px;
 }
+
 .footer-container {
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
 .spinner-container {
-  min-height: 120px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: -32px;
 }
+
 .alert-container {
   margin-bottom: -2px;
+}
+
+/**
+  Ensure a minimum height before the table contents have loaded
+ */
+.datatable-placeholder {
+  min-height: 120px;
 }
 
 /*
@@ -28,8 +42,8 @@
   position: relative;
   margin-bottom: -1px;
   margin-right: -1px;
+  overflow: hidden;
 }
-
 .datatable-sidebar {
   position: absolute;
   top: 0;

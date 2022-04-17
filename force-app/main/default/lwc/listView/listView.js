@@ -67,8 +67,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
       this.detectIcon();
 
       await this.getMetaData();
-      await this.getDataCount();
-      await this.getData();
+      await Promise.all([this.getDataCount(), this.getData()]);
     } catch (e) {
       this.addErrorUI(e);
     } finally {
@@ -91,7 +90,11 @@ export default class ListView extends NavigationMixin(LightningElement) {
   }
 
   get showTable() {
-    return !this.errorUI && !this.isLoading;
+    return !this.errorUI && !this.isDataEmpty;
+  }
+
+  get showPlaceholder() {
+    return this.isLoading && this.dataTotalCount === undefined;
   }
 
   /**
@@ -104,7 +107,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @returns {number}
    */
   get page() {
-    return (this.dataOffset / this.pageSize) + 1;
+    return (this.dataOffset / (this.pageSize ?? pageSizeMax)) + 1;
   }
 
   /**
@@ -113,16 +116,16 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @returns {number}
    */
   get pageLast() {
-    return Math.ceil(this.dataTotalCount / this.pageSize) || 1;
+    return Math.ceil(this.dataTotalCount / (this.pageSize ?? pageSizeMax)) || 1;
   }
 
   /**
-   * If pages should be shown.
+   * If pages should be shown based on the options provided and the count of records.
    *
    * @returns {boolean}
    */
   get showPages() {
-    return !!this.pageSize && this.pageSize > 1;
+    return !!this.pageSize && this.pageLast > 1;
   }
 
   get isPagePreviousDisabled() {
@@ -134,22 +137,22 @@ export default class ListView extends NavigationMixin(LightningElement) {
   }
 
   get isViewAllDisabled() {
-    return this.pageSize >= pageSizeMax;
+    return this.pageSize >= pageSizeMax || this.isLoading;
   }
 
   onPagePrevious() {
     this.dataOffset -= this.pageSize;
-    this.getData().catch((e) => this.addErrorUI(e));
+    this.refreshData();
   }
 
   onPageNext() {
     this.dataOffset += this.pageSize;
-    this.getData().catch((e) => this.addErrorUI(e));
+    this.refreshData();
   }
 
   onViewAll() {
     this.pageSize = pageSizeMax;
-    this.getData().catch((e) => this.addErrorUI(e));
+    this.refreshData();
   }
 
   /**
@@ -233,6 +236,18 @@ export default class ListView extends NavigationMixin(LightningElement) {
         nameField: this.nameField,
         nameFieldLabel: this.nameFieldLabel,
       }))
+    ;
+  }
+
+  /**
+   * Refreshes the data by wrapping the call and managing the loading state.
+   */
+  refreshData() {
+    this.isLoading = true;
+
+    this.getData()
+      .catch((e) => this.addErrorUI(e))
+      .finally(() => this.isLoading = false)
     ;
   }
 

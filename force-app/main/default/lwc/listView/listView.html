@@ -25,6 +25,7 @@
         onrowaction={onRowAction}>
       </lightning-datatable>
       <div class="datatable-sidebar"></div>
+      <div if:true={showPlaceholder} class="datatable-placeholder"></div>
       <div if:true={isLoading} class="spinner-container">
         <lightning-spinner alternative-text="Loading" size="medium" variant="brand"></lightning-spinner>
       </div>
@@ -32,7 +33,7 @@
         No items to display
       </div>
     </div>
-    <div class="slds-card__footer footer-container">
+    <div if:true={showPages} class="slds-card__footer footer-container">
       <lightning-button
         label="Previous"
         variant="brand-outline"
@@ -41,7 +42,7 @@
         disabled={isPagePreviousDisabled}
       >
       </lightning-button>
-      <div if:true={showPages} class="slds-m-horizontal_small">
+      <div class="slds-m-horizontal_small">
         Showing Page {page} of {pageLast}
       </div>
       <lightning-button
