@@ -6,7 +6,7 @@ import {NavigationMixin} from "lightning/navigation";
 import getColumn from './getColumn';
 import getRow from "./getRow";
 import {logApexFunc} from "./utils";
-import {errorMessageGeneric, nameFields, pageSizeMax} from "./constants";
+import {dataTypeNumbers, errorMessageGeneric, nameFields, pageSizeMax} from "./constants";
 
 // Wrap the apex functions using a decorative pattern for logging.
 const getSObjects = logApexFunc('getSObjects', getSObjectsApex);
@@ -34,6 +34,8 @@ export default class ListView extends NavigationMixin(LightningElement) {
   sObjectName;
   fields;
   whereClause;
+  sortBy = 'Name';
+  sortDirection = 'ASC';
   iconName;
 
   // Helper variables.
@@ -198,6 +200,43 @@ export default class ListView extends NavigationMixin(LightningElement) {
   }
 
   /**
+   * Handles the sort data event and passes it to the required method.
+   *
+   * @param event
+   */
+  onSort(event) {
+    this.sortBy = event.detail.fieldName;
+    this.sortDirection = event.detail.sortDirection;
+    this.sortData(this.sortBy, this.sortDirection);
+  }
+
+  /**
+   * Sort the data of the datatable.
+   *
+   * @src https://www.apexhours.com/lightning-datatable-sorting-in-lightning-web-components/
+   *
+   * @param fieldName
+   * @param direction
+   */
+  sortData(fieldName, direction) {
+    const fieldNameModified = fieldName === 'Id' ? this.nameField : fieldName;
+    const dataCloned = JSON.parse(JSON.stringify(this.data));
+
+    let keyValue = (a) => {
+      const isNumberType = dataTypeNumbers.includes(this.dataMeta[fieldNameModified.toLowerCase()]?.type);
+      return isNumberType ? parseFloat(a[fieldNameModified]) : a[fieldNameModified];
+    };
+
+    const isReverse = direction === 'asc' ? 1 : -1;
+    dataCloned.sort((x, y) => {
+      x = keyValue(x) ? keyValue(x) : '';
+      y = keyValue(y) ? keyValue(y) : '';
+      return isReverse * ((x > y) - (y > x));
+    });
+    this.data = dataCloned;
+  }
+
+  /**
    * Returns true if the user is currently in page builder.
    *
    * @returns {boolean}
@@ -230,6 +269,9 @@ export default class ListView extends NavigationMixin(LightningElement) {
         nameFieldLabel: this.nameFieldLabel,
       }))
     ;
+
+    // Correct the sort by based on the metadata.
+    this.sortBy = this.dataMeta[this.sortBy]?.name;
   }
 
   /**
@@ -270,14 +312,16 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * Extract various pieces of the SOQL provided.
    */
   detectSOQLData() {
-    const matchingGroups = /SELECT (?<fields>.+?) FROM (?<sObjectName>[a-z0-9_]+)(?<whereClause>.*)?/i.exec(this.soql)?.groups;
+    const matchingGroups = /SELECT (?<fields>.+?) FROM (?<sObjectName>[a-z0-9_]+)(?<conditions>.*)?/i.exec(this.soql)?.groups;
 
     if (matchingGroups === undefined) {
       throw (`Error detecting the sobject name and relevant fields, expected format "SELECT % FROM %", "${this.soql}" received.`);
     } else {
       this.sObjectName = matchingGroups.sObjectName.toLowerCase();
       this.fields = matchingGroups.fields.split(',').map(field => field.trim().toLowerCase());
-      this.whereClause = (matchingGroups.whereClause || '').replace(/(limit|offset) [0-9].*/i, '').trim();
+      this.whereClause = (matchingGroups.conditions || '').replace(/(((limit|offset) [0-9])|order by ).*/i, '').trim();
+      this.sortBy = /order by (?<orderby>[a-z0-9_]+)/i.exec(matchingGroups.conditions)?.groups?.orderby?.toLowerCase();
+      this.sortDirection = /order by [a-z0-9_]+ (?<orderbydirection>(asc|desc))/i.exec(matchingGroups.conditions)?.groups?.orderbydirection?.toLowerCase() || 'asc';
 
       if (/(limit|offset) [0-9].*/i.exec(this.soql)) {
         console.warn('A limit or offset has been detected, and has been removed as pagination should be used as an alternative.');

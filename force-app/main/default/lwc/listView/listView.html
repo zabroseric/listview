@@ -22,7 +22,11 @@
         show-row-number-column={showRowNumber}
         data={data}
         columns={columns}
-        onrowaction={onRowAction}>
+        onrowaction={onRowAction}
+        onsort={onSort}
+        sorted-by={sortBy}
+        sorted-direction={sortDirection}
+      >
       </lightning-datatable>
       <div class="datatable-sidebar"></div>
       <div if:true={showPlaceholder} class="datatable-placeholder"></div>

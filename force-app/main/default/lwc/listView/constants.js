@@ -8,6 +8,13 @@ export const nameFields = {
   'default': 'Name',
 }
 
+export const dataTypeNumbers = [
+  'currency',
+  'double',
+  'percent',
+  'long',
+];
+
 export const dataTypes = {
   'address': 'string',
   'anytype': 'string',

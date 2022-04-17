@@ -35,6 +35,7 @@ const getColumn = (metaData, options) => {
     fieldName: metaData.name,
     label: !isColumnHide(metaData) ? metaData.label : '',
     type: dataTypes[metaData.type],
+    sortable: true,
   };
 
   // If we have an id, show the name and hyperlink it.
@@ -62,6 +63,7 @@ const getColumn = (metaData, options) => {
         variant: getButtonVariant(urlType),
         fieldName: metaData.name,
         type: 'button',
+        sortable: false,
       }
     };
   }
