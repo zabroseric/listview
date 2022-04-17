@@ -1,35 +1,5 @@
-import {filterObj, mergeOptions, titleCase} from "./utils";
-
-const dataTypes = {
-  'address': 'string',
-  'anytype': 'string',
-  'base64': 'string',
-  'boolean': 'boolean',
-  'combobox': 'string',
-  'complexvalue': 'string',
-  'currency': 'currency',
-  'datacategorygroupreference': 'string',
-  'date': 'date',
-  'datetime': 'date',
-  'double': 'number',
-  'email': 'email',
-  'encryptedstring': 'string',
-  'id': 'button',
-  'integer': 'number',
-  'json': 'string',
-  'location': 'location',
-  'long': 'number',
-  'multipicklist': 'string',
-  'percent': 'percent',
-  'phone': 'phone',
-  'picklist': 'string',
-  'reference': 'string',
-  'sobject': 'string',
-  'string': 'string',
-  'textarea': 'string',
-  'time': 'date',
-  'url': 'url',
-};
+import {mergeOptions} from "./utils";
+import {dataTypes} from "./constants";
 
 const optionDefaults = {
   urlType: 'button-base',

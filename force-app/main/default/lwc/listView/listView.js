@@ -6,21 +6,12 @@ import {NavigationMixin} from "lightning/navigation";
 import getColumn from './getColumn';
 import getRow from "./getRow";
 import {logApexFunc} from "./utils";
-
-const errorMessageGeneric = 'An unknown error occurred, please contact support.';
-const pageSizeMax = 1000;
+import {errorMessageGeneric, nameFields, pageSizeMax} from "./constants";
 
 // Wrap the apex functions using a decorative pattern for logging.
 const getSObjects = logApexFunc('getSObjects', getSObjectsApex);
 const getSObjectCount = logApexFunc('getSObjectCount', getSObjectCountApex);
 const getSObjectFields = logApexFunc('getSObjectFields', getSObjectFieldsApex);
-
-// The name field to be used when an id is referenced.
-const nameFields = {
-  'case': 'CaseNumber',
-  'order': 'OrderNumber',
-  'default': 'Name',
-}
 
 export default class ListView extends NavigationMixin(LightningElement) {
 
