@@ -7,6 +7,7 @@ import getColumn from './getColumn';
 import getRow from "./getRow";
 
 const errorMessageGeneric = 'An unknown error occurred, please contact support.';
+const pageSizeMax = 1000;
 
 // The name field to be used when an id is referenced.
 const nameFields = {
@@ -61,9 +62,10 @@ export default class ListView extends NavigationMixin(LightningElement) {
       this.detectIcon();
 
       await this.getMetaData();
+      await this.getDataCount();
       await this.getData();
     } catch (e) {
-      this.addErrorUI(e?.body?.message || e?.message || e);
+      this.addErrorUI(e);
     } finally {
       this.isLoading = false;
       this.debugFields();
@@ -81,11 +83,69 @@ export default class ListView extends NavigationMixin(LightningElement) {
   }
 
   get isDataEmpty() {
-    return !this.isLoading && this.data.length === 0;
+    return !this.isLoading && this.dataTotalCount === 0;
   }
 
   get showTable() {
     return !this.errorUI && !this.isLoading;
+  }
+
+  /**
+   * Get the page number based on the current offset.
+   *
+   * Offset: 0, Page Size: 10 = Page 1
+   * Offset: 10, Page Size: 10 = Page 2
+   * Offset: 20, Page Size: 10 = Page 3
+   *
+   * @returns {number}
+   */
+  get page() {
+    return (this.dataOffset / this.pageSize) + 1;
+  }
+
+  /**
+   * Get the total number of pages based on the row count.
+   *
+   * @returns {number}
+   */
+  get pageLast() {
+    return Math.ceil(this.dataTotalCount / this.pageSize) || 1;
+  }
+
+  /**
+   * If pages should be shown.
+   *
+   * @returns {boolean}
+   */
+  get showPages() {
+    return !!this.pageSize && this.pageSize > 1;
+  }
+
+  get isPagePreviousDisabled() {
+    return this.page <= 1 || this.isViewAllDisabled;
+  }
+
+  get isPageNextDisabled() {
+    return this.page > this.pageLast - 1 || this.isViewAllDisabled;
+  }
+
+  get isViewAllDisabled() {
+    return this.pageSize >= pageSizeMax;
+  }
+
+  onPagePrevious() {
+    this.dataOffset -= this.pageSize;
+    this.getData().catch((e) => this.addErrorUI(e));
+  }
+
+  onPageNext() {
+    this.dataOffset += this.pageSize;
+    this.getData().catch((e) => this.addErrorUI(e));
+  }
+
+  onViewAll() {
+    this.pageSize = pageSizeMax;
+    this.getData().catch((e) => this.addErrorUI(e));
   }
 
   /**
@@ -126,7 +186,8 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @param error
    */
   addErrorUI(error) {
-    console.error(error);
+    const errorSpread = error?.body?.message || error?.message || error;
+    console.error(errorSpread);
 
     // If we are not in page builder, simply provide a generic error.
     if (!this.isPageBuilder) {
@@ -134,7 +195,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
       return;
     }
     // Add the errors together.
-    this.errorUI = (this.errorUI ? '' : '\n') + error;
+    this.errorUI = (this.errorUI ? '' : '\n') + errorSpread;
   }
 
   /**
@@ -180,19 +241,33 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @returns {Promise<void>}
    */
   async getData() {
-    let soql = `SELECT ${this.fieldsValid.join(', ')} FROM ${this.sObjectName} ${this.whereClause}`;
-    let soqlCount = `SELECT COUNT(id) FROM ${this.sObjectName} ${this.whereClause}`;
+    let soql = `
+        SELECT ${this.fieldsValid.join(', ')}
+        FROM ${this.sObjectName} ${this.whereClause}
+    `;
 
     if (/limit [0-9]/gi.exec(soql) !== null && this.pageSize) {
       console.warn('A page size has been added for pagination, but the SOQL has a limit/offset specified. Pagination has been turned off.');
     } else if (this.pageSize) {
-      soql += `LIMIT ${this.pageSize} OFFSET ${this.dataOffset}`;
+      soql += `LIMIT ${this.pageSize ?? pageSizeMax} OFFSET ${this.dataOffset}`;
     }
 
     // Get the rows
     console.debug(`Executing SOQL: ${soql}`);
     this.dataOriginal = (await getSObjects({soql: soql}));
     this.data = this.dataOriginal.map((row) => getRow(row, this.columns));
+  }
+
+  /**
+   * Get the data count for the list view from the apex class.
+   *
+   * @returns {Promise<void>}
+   */
+  async getDataCount() {
+    let soqlCount = `
+        SELECT COUNT(id)
+        FROM ${this.sObjectName} ${this.whereClause}
+    `;
 
     // Get the total count
     console.debug(`Executing SOQL: ${soqlCount}`);

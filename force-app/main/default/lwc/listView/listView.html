@@ -32,5 +32,35 @@
         No items to display
       </div>
     </div>
+    <div class="slds-card__footer footer-container">
+      <lightning-button
+        label="Previous"
+        variant="brand-outline"
+        icon-name="utility:chevronleft"
+        onclick={onPagePrevious}
+        disabled={isPagePreviousDisabled}
+      >
+      </lightning-button>
+      <div if:true={showPages} class="slds-m-horizontal_small">
+        Showing Page {page} of {pageLast}
+      </div>
+      <lightning-button
+        label="View All"
+        variant="brand-outline"
+        onclick={onViewAll}
+        disabled={isViewAllDisabled}
+      >
+      </lightning-button>
+      <lightning-button
+        label="Next"
+        variant="brand-outline"
+        class="slds-m-left_x-small"
+        icon-name="utility:chevronright"
+        icon-position="right"
+        onclick={onPageNext}
+        disabled={isPageNextDisabled}
+      >
+      </lightning-button>
+    </div>
   </div>
 </template>
