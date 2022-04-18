@@ -1,5 +1,7 @@
 export const errorMessageGeneric = 'An unknown error occurred, please contact support.';
 export const pageSizeMax = 1000;
+export const sortByDefault = 'id';
+export const sortDirectionDefault = 'asc';
 
 // The name field to be used when an id is referenced.
 export const nameFields = {

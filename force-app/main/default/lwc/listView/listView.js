@@ -6,7 +6,14 @@ import {NavigationMixin} from "lightning/navigation";
 import getColumn from './getColumn';
 import getRow from "./getRow";
 import {logApexFunc} from "./utils";
-import {dataTypeNumbers, errorMessageGeneric, nameFields, pageSizeMax} from "./constants";
+import {
+  dataTypeNumbers,
+  errorMessageGeneric,
+  nameFields,
+  pageSizeMax,
+  sortByDefault,
+  sortDirectionDefault
+} from "./constants";
 
 // Wrap the apex functions using a decorative pattern for logging.
 const getSObjects = logApexFunc('getSObjects', getSObjectsApex);
@@ -34,8 +41,8 @@ export default class ListView extends NavigationMixin(LightningElement) {
   sObjectName;
   fields;
   whereClause;
-  sortBy = 'Name';
-  sortDirection = 'ASC';
+  sortBy;
+  sortDirection;
   iconName;
 
   // Helper variables.
@@ -219,12 +226,12 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @param direction
    */
   sortData(fieldName, direction) {
-    const fieldNameModified = fieldName === 'Id' ? this.nameField : fieldName;
     const dataCloned = JSON.parse(JSON.stringify(this.data));
 
-    let keyValue = (a) => {
-      const isNumberType = dataTypeNumbers.includes(this.dataMeta[fieldNameModified.toLowerCase()]?.type);
-      return isNumberType ? parseFloat(a[fieldNameModified]) : a[fieldNameModified];
+    let keyValue = (key) => {
+      const isNumberType = dataTypeNumbers.includes(this.getFieldMetaData(fieldName));
+      const value = key[this.rewriteFieldName(fieldName)];
+      return isNumberType ? parseFloat(value) : value;
     };
 
     const isReverse = direction === 'asc' ? 1 : -1;
@@ -243,6 +250,26 @@ export default class ListView extends NavigationMixin(LightningElement) {
    */
   get isPageBuilder() {
     return window.location.pathname.indexOf('flexipageEditor') !== -1;
+  }
+
+  /**
+   * Get the metadata for a specific field (case inventive).
+   *
+   * @param fieldName
+   * @returns {*}
+   */
+  getFieldMetaData(fieldName) {
+    return this.dataMeta[this.rewriteFieldName(fieldName).toLowerCase()];
+  }
+
+  /**
+   * Rewrite the field name allowing another to be used where required.
+   *
+   * @param fieldName
+   * @returns {*}
+   */
+  rewriteFieldName(fieldName) {
+    return fieldName === 'Id' ? this.nameField : fieldName;
   }
 
   /**
@@ -271,7 +298,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
     ;
 
     // Correct the sort by based on the metadata.
-    this.sortBy = this.dataMeta[this.sortBy]?.name;
+    this.sortBy = this.getFieldMetaData(this.sortBy)?.name || this.getFieldMetaData(sortByDefault)?.name;
   }
 
   /**
@@ -293,7 +320,8 @@ export default class ListView extends NavigationMixin(LightningElement) {
    */
   async getData() {
     this.data = this.logTable = (await getSObjects({
-      soql: `SELECT ${this.fieldsValid.join(', ')} FROM ${this.sObjectName} ${this.whereClause} LIMIT ${this.pageSize ?? pageSizeMax} OFFSET ${this.dataOffset}`
+      soql: `SELECT ${this.fieldsValid.join(', ')} FROM ${this.sObjectName} ${this.whereClause}`
+        + `ORDER BY ${this.sortBy} ${this.sortDirection} LIMIT ${this.pageSize ?? pageSizeMax} OFFSET ${this.dataOffset}`
     })).map((row) => getRow(row, this.columns));
   }
 
@@ -321,7 +349,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
       this.fields = matchingGroups.fields.split(',').map(field => field.trim().toLowerCase());
       this.whereClause = (matchingGroups.conditions || '').replace(/(((limit|offset) [0-9])|order by ).*/i, '').trim();
       this.sortBy = /order by (?<orderby>[a-z0-9_]+)/i.exec(matchingGroups.conditions)?.groups?.orderby?.toLowerCase();
-      this.sortDirection = /order by [a-z0-9_]+ (?<orderbydirection>(asc|desc))/i.exec(matchingGroups.conditions)?.groups?.orderbydirection?.toLowerCase() || 'asc';
+      this.sortDirection = /order by [a-z0-9_]+ (?<orderbydirection>(asc|desc))/i.exec(matchingGroups.conditions)?.groups?.orderbydirection?.toLowerCase() || sortDirectionDefault;
 
       if (/(limit|offset) [0-9].*/i.exec(this.soql)) {
         console.warn('A limit or offset has been detected, and has been removed as pagination should be used as an alternative.');
