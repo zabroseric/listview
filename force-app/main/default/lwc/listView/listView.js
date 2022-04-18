@@ -5,7 +5,7 @@ import getSObjectFieldsApex from '@salesforce/apex/ListViewController.getSObject
 import {NavigationMixin} from "lightning/navigation";
 import getColumn from './getColumn';
 import getRow from "./getRow";
-import {logApexFunc} from "./utils";
+import {logApexFunc, titleCase} from "./utils";
 import {
   dataTypeNumbers,
   errorMessageGeneric,
@@ -207,40 +207,15 @@ export default class ListView extends NavigationMixin(LightningElement) {
   }
 
   /**
-   * Handles the sort data event and passes it to the required method.
+   * Handles the sorting of data via SOQL, due to multiple pages not necessarily being in memory.
+   * The method uses defaults in the case there's an issue with the sorting field.
    *
    * @param event
    */
   onSort(event) {
-    this.sortBy = event.detail.fieldName;
-    this.sortDirection = event.detail.sortDirection;
-    this.sortData(this.sortBy, this.sortDirection);
-  }
-
-  /**
-   * Sort the data of the datatable.
-   *
-   * @src https://www.apexhours.com/lightning-datatable-sorting-in-lightning-web-components/
-   *
-   * @param fieldName
-   * @param direction
-   */
-  sortData(fieldName, direction) {
-    const dataCloned = JSON.parse(JSON.stringify(this.data));
-
-    let keyValue = (key) => {
-      const isNumberType = dataTypeNumbers.includes(this.getFieldMetaData(fieldName));
-      const value = key[this.rewriteFieldName(fieldName)];
-      return isNumberType ? parseFloat(value) : value;
-    };
-
-    const isReverse = direction === 'asc' ? 1 : -1;
-    dataCloned.sort((x, y) => {
-      x = keyValue(x) ? keyValue(x) : '';
-      y = keyValue(y) ? keyValue(y) : '';
-      return isReverse * ((x > y) - (y > x));
-    });
-    this.data = dataCloned;
+    this.sortBy = this.rewriteFieldName(event.detail.fieldName) || this.getFieldMetaData(sortByDefault)?.name;
+    this.sortDirection = event.detail.sortDirection || sortDirectionDefault;
+    this.refreshData();
   }
 
   /**
@@ -320,8 +295,8 @@ export default class ListView extends NavigationMixin(LightningElement) {
    */
   async getData() {
     this.data = this.logTable = (await getSObjects({
-      soql: `SELECT ${this.fieldsValid.join(', ')} FROM ${this.sObjectName} ${this.whereClause}`
-        + `ORDER BY ${this.sortBy} ${this.sortDirection} LIMIT ${this.pageSize ?? pageSizeMax} OFFSET ${this.dataOffset}`
+      soql: `SELECT ${this.fieldsValid.join(', ')} FROM ${titleCase(this.sObjectName)} ${this.whereClause}`
+        + `ORDER BY ${this.sortBy} ${this.sortDirection.toUpperCase()} LIMIT ${this.pageSize ?? pageSizeMax} OFFSET ${this.dataOffset}`.trim()
     })).map((row) => getRow(row, this.columns));
   }
 
@@ -332,7 +307,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
    */
   async getDataCount() {
     this.dataTotalCount = await getSObjectCount({
-      soql: `SELECT COUNT(id) FROM ${this.sObjectName} ${this.whereClause}`
+      soql: `SELECT COUNT(Id) FROM ${titleCase(this.sObjectName)} ${this.whereClause}`.trim()
     });
   }
 
