@@ -173,6 +173,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * On pressing of the view all button.
    */
   onViewAll() {
+    this.dataOffset = 0;
     this.pageSize = pageSizeMax;
     this.refreshData();
   }
