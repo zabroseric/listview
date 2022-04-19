@@ -7,8 +7,7 @@ import getColumn from './getColumn';
 import getRow from "./getRow";
 import {logApexFunc, titleCase} from "./utils";
 import {
-  dataTypeNumbers,
-  errorMessageGeneric,
+  errorMessageGeneric, infiniteScrollingAdditionalRowsDefault,
   nameFields,
   pageSizeMax,
   sortByDefault,
@@ -31,6 +30,8 @@ export default class ListView extends NavigationMixin(LightningElement) {
   @api icon;
   @api pageSize;
   @api showRowNumber;
+  @api infiniteScrolling;
+  @api infiniteScrollingHeight = 500;
   @api urlType;
 
   // Editing of information.
@@ -52,6 +53,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
   nameField;
   nameFieldLabel;
   isLoading = true;
+  infiniteScrollingAdditionalRows;
 
   columns = [];
   data = [];
@@ -63,6 +65,8 @@ export default class ListView extends NavigationMixin(LightningElement) {
    */
   async connectedCallback() {
     try {
+      this.infiniteScrollingAdditionalRows = this.pageSize || infiniteScrollingAdditionalRowsDefault;
+
       this.detectSOQLData();
       this.detectIcon();
 
@@ -88,18 +92,6 @@ export default class ListView extends NavigationMixin(LightningElement) {
     if (action?.type === 'button') {
       this.navigateUrl(row[action?.fieldName]);
     }
-  }
-
-  get isDataEmpty() {
-    return !this.isLoading && this.dataTotalCount === 0;
-  }
-
-  get showTable() {
-    return !this.errorUI && !this.isDataEmpty;
-  }
-
-  get showPlaceholder() {
-    return this.isLoading && this.dataTotalCount === undefined;
   }
 
   /**
@@ -130,7 +122,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @returns {boolean}
    */
   get showPages() {
-    return !!this.pageSize && this.pageLast > 1;
+    return !!this.pageSize && this.pageLast > 1 && !this.infiniteScrolling;
   }
 
   get isPagePreviousDisabled() {
@@ -158,6 +150,18 @@ export default class ListView extends NavigationMixin(LightningElement) {
   onViewAll() {
     this.pageSize = pageSizeMax;
     this.refreshData();
+  }
+
+  get isDataEmpty() {
+    return !this.isLoading && this.dataTotalCount === 0;
+  }
+
+  get showTable() {
+    return !this.errorUI && !this.isDataEmpty;
+  }
+
+  get showPlaceholder() {
+    return this.isLoading && this.dataTotalCount === undefined;
   }
 
   /**
@@ -215,7 +219,43 @@ export default class ListView extends NavigationMixin(LightningElement) {
   onSort(event) {
     this.sortBy = this.rewriteFieldName(event.detail.fieldName) || this.getFieldMetaData(sortByDefault)?.name;
     this.sortDirection = event.detail.sortDirection || sortDirectionDefault;
-    this.refreshData();
+    this.isLoading = true;
+
+    this.getData()
+      .catch((e) => this.onError(e))
+      .finally(() => this.isLoading = false)
+    ;
+  }
+
+  /**
+   * When infinite scrolling is enabled, the page size is increased is added to
+   * based on the original page size.
+   *
+   * @param target
+   * @returns {boolean}
+   */
+  onLoadMore({target}) {
+    // Don't show more than our maximum limit or what is available.
+    if (this.pageSize >= pageSizeMax || this.data.length >= this.dataTotalCount) {
+      return false;
+    }
+
+    target.isLoading = true;
+    this.pageSize += this.infiniteScrollingAdditionalRows;
+
+    this.getData()
+      .catch((e) => this.onError(e))
+      .finally(() => target.isLoading = false)
+    ;
+  }
+
+  /**
+   * If infinite scrolling is enabled, fix the height of the table.
+   *
+   * @returns {string|string}
+   */
+  get dataTableStyle() {
+    return this.infiniteScrolling ? `height: ${this.infiniteScrollingHeight}px;` : '';
   }
 
   /**

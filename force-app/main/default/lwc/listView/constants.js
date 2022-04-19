@@ -2,20 +2,14 @@ export const errorMessageGeneric = 'An unknown error occurred, please contact su
 export const pageSizeMax = 1000;
 export const sortByDefault = 'id';
 export const sortDirectionDefault = 'asc';
+export const infiniteScrollingAdditionalRowsDefault = 20;
 
 // The name field to be used when an id is referenced.
 export const nameFields = {
   'case': 'CaseNumber',
   'order': 'OrderNumber',
   'default': 'Name',
-}
-
-export const dataTypeNumbers = [
-  'currency',
-  'double',
-  'percent',
-  'long',
-];
+};
 
 export const dataTypes = {
   'address': 'string',

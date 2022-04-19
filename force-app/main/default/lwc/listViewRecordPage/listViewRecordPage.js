@@ -8,6 +8,7 @@ export default class ListViewRecordPage extends LightningElement {
   @api icon;
   @api pageSize;
   @api showRowNumber;
+  @api infiniteScrolling;
   @api urlType;
   @api editFields;
   @api bypassAccess;

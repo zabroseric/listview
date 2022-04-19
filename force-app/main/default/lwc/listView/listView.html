@@ -14,12 +14,14 @@
         {errorUI}
       </c-alert>
     </div>
-    <div class="datatable-container">
+    <div class="datatable-container" style={dataTableStyle}>
       <lightning-datatable
         if:true={showTable}
         key-field="Id"
         hide-checkbox-column
         show-row-number-column={showRowNumber}
+        enable-infinite-loading={infiniteScrolling}
+        onloadmore={onLoadMore}
         data={data}
         columns={columns}
         onrowaction={onRowAction}
