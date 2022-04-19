@@ -5,10 +5,10 @@ import getSObjectFieldsApex from '@salesforce/apex/ListViewController.getSObject
 import {NavigationMixin} from "lightning/navigation";
 import getColumn from './getColumn';
 import getRow from "./getRow";
-import {logApexFunc, titleCase} from "./utils";
+import {logApexFunc, titleCase, toBoolean} from "./utils";
 import {
-  errorMessageGeneric, infiniteScrollingAdditionalRowsDefault,
-  nameFields,
+  errorMessageGeneric,
+  nameFields, pageSizeDefault,
   pageSizeMax,
   sortByDefault,
   sortDirectionDefault
@@ -31,6 +31,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
   @api pageSize;
   @api showRowNumber;
   @api infiniteScrolling;
+  @api infiniteScrollingAdditionalRows;
   @api infiniteScrollingHeight = 500;
   @api urlType;
 
@@ -53,7 +54,6 @@ export default class ListView extends NavigationMixin(LightningElement) {
   nameField;
   nameFieldLabel;
   isLoading = true;
-  infiniteScrollingAdditionalRows;
 
   columns = [];
   data = [];
@@ -65,7 +65,11 @@ export default class ListView extends NavigationMixin(LightningElement) {
    */
   async connectedCallback() {
     try {
-      this.infiniteScrollingAdditionalRows = this.pageSize || infiniteScrollingAdditionalRowsDefault;
+      // Set defaults and correct data types.
+      this.pageSize = this.pageSize ?? pageSizeDefault;
+      this.infiniteScrollingAdditionalRows = this.infiniteScrollingAdditionalRows ?? this.pageSize;
+      this.showRowNumber = toBoolean(this.showRowNumber);
+      this.infiniteScrolling = toBoolean(this.infiniteScrolling);
 
       this.detectSOQLData();
       this.detectIcon();
@@ -104,7 +108,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @returns {number}
    */
   get page() {
-    return (this.dataOffset / (this.pageSize ?? pageSizeMax)) + 1;
+    return (this.dataOffset / (this.pageSize)) + 1;
   }
 
   /**
@@ -113,7 +117,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @returns {number}
    */
   get pageLast() {
-    return Math.ceil(this.dataTotalCount / (this.pageSize ?? pageSizeMax)) || 1;
+    return Math.ceil(this.dataTotalCount / (this.pageSize)) || 1;
   }
 
   /**
@@ -274,7 +278,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @returns {*}
    */
   getFieldMetaData(fieldName) {
-    return this.dataMeta[this.rewriteFieldName(fieldName).toLowerCase()];
+    return this.dataMeta[this.rewriteFieldName(fieldName)?.toLowerCase()];
   }
 
   /**
@@ -336,7 +340,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
   async getData() {
     this.data = this.logTable = (await getSObjects({
       soql: `SELECT ${this.fieldsValid.join(', ')} FROM ${titleCase(this.sObjectName)} ${this.whereClause}`
-        + `ORDER BY ${this.sortBy} ${this.sortDirection.toUpperCase()} LIMIT ${this.pageSize ?? pageSizeMax} OFFSET ${this.dataOffset}`.trim()
+        + `ORDER BY ${this.sortBy} ${this.sortDirection.toUpperCase()} LIMIT ${this.pageSize} OFFSET ${this.dataOffset}`.trim()
     })).map((row) => getRow(row, this.columns));
   }
 
@@ -376,7 +380,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * Detect the icon that should be used on the page based on the SOQL provided.
    */
   detectIcon() {
-    const iconValidFormat = /^[a-z]+:[a-z]+$/i.exec(this.icon) !== null;
+    const iconValidFormat = /^[a-z]+:[a-z0-9]+$/i.exec(this.icon) !== null;
 
     // Icon is provided, and is of a valid format.
     if (this.icon && iconValidFormat) {

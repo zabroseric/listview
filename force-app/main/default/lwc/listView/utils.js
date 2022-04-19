@@ -49,3 +49,28 @@ export const logApexFunc = (funcName, func) => {
     }
   }
 }
+
+/**
+ * Converts unknown data to a boolean, this is useful when a true or false may be passed as a string
+ * or an alternative format.
+ *
+ * @param obj
+ * @returns {boolean}
+ */
+export const toBoolean = (obj) => {
+  switch(String(obj).toLowerCase().trim()){
+    case "true":
+    case "yes":
+    case "1":
+      return true;
+
+    case "false":
+    case "no":
+    case "0":
+    case null:
+      return false;
+
+    default:
+      return Boolean(obj);
+  }
+}
