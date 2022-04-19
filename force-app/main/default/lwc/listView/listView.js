@@ -210,6 +210,9 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * When infinite scrolling is enabled, the page size is increased is added to
    * based on the original page size.
    *
+   * Note: We expand the event to the target, as there appears to be an issue referencing the event
+   * in an async operation.
+   *
    * @param target
    * @returns {boolean}
    */
@@ -388,7 +391,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
   }
 
   /* -----------------------------------------------
-    Dynamic Getters from SOQL Statement
+    Dynamic Getters from the SOQL Statement
    ----------------------------------------------- */
   get sObjectName() {
     return this.soqlGroups ? this.soqlGroups.sObjectName.toLowerCase() : '';
@@ -419,7 +422,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
    *
    * @param value
    */
-  set error(value) {
+  @api set error(value) {
     if (!this.isPageBuilder) {
       this._error = errorMessageGeneric;
     } else {
@@ -462,12 +465,12 @@ export default class ListView extends NavigationMixin(LightningElement) {
     this._sortDirection = value;
   }
 
-  @api set infiniteScrollingHeight(value) {
-    this._infiniteScrollingHeight = value;
-  }
-
   get infiniteScrollingHeight() {
     return Number(this._infiniteScrollingHeight || infiniteScrollHeightDefault);
+  }
+
+  @api set infiniteScrollingHeight(value) {
+    this._infiniteScrollingHeight = value;
   }
 
   get soql() {
