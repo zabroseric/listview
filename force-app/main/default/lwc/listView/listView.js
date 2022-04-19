@@ -269,7 +269,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @returns {boolean}
    */
   get showTable() {
-    return !this._error && !this.isDataEmpty;
+    return !this.error && !this.isDataEmpty;
   }
 
   /**
@@ -527,7 +527,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
       return `standard:${this.sObjectName.toLowerCase()}`;
     }
 
-    return undefined;
+    return '';
   }
 
   @api set icon(value) {
