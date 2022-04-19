@@ -9,6 +9,7 @@
         <members>listViewRecordPage</members>
         <members>alert</members>
         <members>cardHeading</members>
+        <members>listViewCommunityPage</members>
         <name>LightningComponentBundle</name>
     </types>
     <version>54.0</version>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>54.0</apiVersion>
+    <description>An enhanced version of the Salesforce List View and Related List for community pages.</description>
+    <isExposed>true</isExposed>
+    <masterLabel>List View Community Page</masterLabel>
+    <targets>
+        <target>lightningCommunity__Page</target>
+        <target>lightningCommunity__Default</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightningCommunity__Default">
+            <property name="title" label="Title" type="String" required="true"/>
+            <property name="soql" label="SOQL" type="String" required="true"/>
+            <property name="subTitle" label="Sub Title" type="String"/>
+            <property name="recordId" label="Record Id" type="String" required="false"/>
+            <property name="icon" label="Icon" type="String"/>
+            <property name="pageSize" label="Page Size" type="Integer" min="1"/>
+            <property name="editFields" label="Edit Fields (Phase 2)" type="String"/>
+            <property name="urlType" label="URL Display" type="String" datasource="button-base,button-neutral,button-brand,button-brand-outline,button-destructive,button-destructive-text,button-inverse,button-success"/>
+            <property name="showRowNumber" label="Show Row Number" type="Boolean" default="false"/>
+            <property name="infiniteScrolling" label="Infinite Scrolling" type="Boolean" default="false"/>
+            <property name="bypassAccess" label="Bypass Access (Phase 2)" type="Boolean"/>
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>
