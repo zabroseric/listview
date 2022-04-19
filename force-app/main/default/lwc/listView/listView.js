@@ -170,7 +170,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
   }
 
   /**
-   * On pressing of the view all button.
+   * On pressing of the View All button.
    */
   onViewAll() {
     this.dataOffset = 0;
