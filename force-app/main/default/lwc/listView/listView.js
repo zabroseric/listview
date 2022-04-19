@@ -123,7 +123,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
     ;
 
     // Correct the sort by based on the metadata.
-    this.sortBy = this.getFieldMetaData(this.sortBy)?.name || this.getFieldMetaData(sortByDefault)?.name;
+    this.sortBy = this.getFieldMetaData(this.sortBy)?.name;
   }
 
   /**
@@ -197,8 +197,8 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @param event
    */
   onSort(event) {
-    this.sortBy = this.rewriteFieldName(event.detail.fieldName) || this.getFieldMetaData(sortByDefault)?.name;
-    this.sortDirection = event.detail._sortDirection || sortDirectionDefault;
+    this.sortBy = this.rewriteFieldName(event.detail.fieldName);
+    this.sortDirection = event.detail._sortDirection;
     this.isLoading = true;
 
     this.getData()
@@ -441,6 +441,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
   get sortBy() {
     return this._sortBy
       || /order by (?<orderby>[a-z0-9_]+)/i.exec(this.soqlGroups.conditions)?.groups?.orderby?.toLowerCase()
+      || this.getFieldMetaData(sortByDefault)?.name
       || sortByDefault
       ;
   }
