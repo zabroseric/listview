@@ -2,70 +2,70 @@
 <template>
   <div class="slds-card slds-card_boundary">
     <c-card-heading
-      title={title}
-      title-count={dataTotalCount}
+      icon-name={icon}
       sub-title={subTitle}
-      icon-name={iconName}>
-      <slot slot="buttons" name="buttons"></slot>
+      title={title}
+      title-count={dataTotalCount}>
+      <slot name="buttons" slot="buttons"></slot>
     </c-card-heading>
     <div class="slds-border_bottom slds-color__border_gray-6"></div>
-    <div if:true={errorUI} class="alert-container">
+    <div class="alert-container" if:true={_error}>
       <c-alert variant="error">
-        {errorUI}
+        {_error}
       </c-alert>
     </div>
     <div class="datatable-container" style={dataTableStyle}>
       <lightning-datatable
+        columns={columns}
+        data={data}
+        enable-infinite-loading={infiniteScrolling}
+        hide-checkbox-column
         if:true={showTable}
         key-field="Id"
-        hide-checkbox-column
-        show-row-number-column={showRowNumber}
-        enable-infinite-loading={infiniteScrolling}
         onloadmore={onLoadMore}
-        data={data}
-        columns={columns}
         onrowaction={onRowAction}
         onsort={onSort}
+        show-row-number-column={showRowNumber}
         sorted-by={sortBy}
         sorted-direction={sortDirection}
       >
       </lightning-datatable>
       <div class="datatable-sidebar"></div>
-      <div if:true={showPlaceholder} class="datatable-placeholder"></div>
-      <div if:true={isLoading} class="spinner-container">
+      <div class="datatable-placeholder" if:true={showPlaceholder}></div>
+      <div class="spinner-container" if:true={isLoading}>
         <lightning-spinner alternative-text="Loading" size="medium" variant="brand"></lightning-spinner>
       </div>
-      <div if:true={isDataEmpty} class="empty-container slds-color__background_gray-1">
+      <div class="empty-container slds-color__background_gray-1" if:true={isDataEmpty}>
         No items to display
       </div>
     </div>
-    <div if:true={showPages} class="slds-card__footer footer-container">
+    <div class="slds-card__footer footer-container" if:true={showPages}>
       <lightning-button
-        label="Previous"
-        variant="brand-outline"
-        icon-name="utility:chevronleft"
-        onclick={onPagePrevious}
         disabled={isPagePreviousDisabled}
+        icon-name="utility:chevronleft"
+        label="Previous"
+        onclick={onPagePrevious}
+        variant="brand-outline"
       >
       </lightning-button>
       <div class="slds-m-horizontal_small">
         Showing Page {page} of {pageLast}
       </div>
       <lightning-button
-        label="View All"
-        variant="brand-outline"
-        onclick={onViewAll}
         disabled={isViewAllDisabled}
+        label="View All"
+        onclick={onViewAll}
+        variant="brand-outline"
       >
       </lightning-button>
       <lightning-button
-        label="Next"
-        variant="brand-outline"
         class="slds-m-left_x-small"
+        disabled={isPageNextDisabled}
         icon-name="utility:chevronright"
         icon-position="right"
+        label="Next"
         onclick={onPageNext}
-        disabled={isPageNextDisabled}
+        variant="brand-outline"
       >
       </lightning-button>
     </div>

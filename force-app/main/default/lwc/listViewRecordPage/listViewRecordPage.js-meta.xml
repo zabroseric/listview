@@ -15,7 +15,8 @@
             <property name="icon" label="Icon" type="String"/>
             <property name="pageSize" label="Page Size" type="Integer" min="1"/>
             <property name="editFields" label="Edit Fields (Phase 2)" type="String"/>
-            <property name="urlType" label="URL Display" type="String" datasource="button-base,button-neutral,button-brand,button-brand-outline,button-destructive,button-destructive-text,button-inverse,button-success"/>
+            <property name="urlType" label="URL Display" type="String"
+                      datasource="button-base,button-neutral,button-brand,button-brand-outline,button-destructive,button-destructive-text,button-inverse,button-success"/>
             <property name="showRowNumber" label="Show Row Number" type="Boolean" default="false"/>
             <property name="infiniteScrolling" label="Infinite Scrolling" type="Boolean" default="false"/>
             <property name="bypassAccess" label="Bypass Access (Phase 2)" type="Boolean"/>

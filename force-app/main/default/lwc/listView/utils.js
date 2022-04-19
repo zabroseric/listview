@@ -43,8 +43,7 @@ export const logApexFunc = (funcName, func) => {
       const result = await func(...props);
       console.debug(`Result of ${funcName}:`, result);
       return result;
-    }
-    catch (e) {
+    } catch (e) {
       throw e?.body?.message || e?.message || e;
     }
   }
@@ -58,7 +57,7 @@ export const logApexFunc = (funcName, func) => {
  * @returns {boolean}
  */
 export const toBoolean = (obj) => {
-  switch(String(obj).toLowerCase().trim()){
+  switch (String(obj).toLowerCase().trim()) {
     case "true":
     case "yes":
     case "1":

@@ -3,6 +3,7 @@ export const pageSizeMax = 1000;
 export const pageSizeDefault = 200;
 export const sortByDefault = 'id';
 export const sortDirectionDefault = 'asc';
+export const infiniteScrollHeightDefault = 500;
 
 // The name field to be used when an id is referenced.
 export const nameFields = {

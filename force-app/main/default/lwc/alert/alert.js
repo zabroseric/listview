@@ -1,7 +1,3 @@
-/**
- * Created by shaun on 7/04/2022.
- */
-
 import {api, LightningElement} from 'lwc';
 
 const variantAllowed = [
@@ -29,12 +25,6 @@ export default class Alert extends LightningElement {
   @api variant;
   @api message;
 
-  connectedCallback() {
-    if (!this.showAlert) {
-      console.error(`Alert variant of ${this.variant} not allowed.`);
-    }
-  }
-
   get className() {
     return `slds-notify slds-notify_alert slds-theme_${this.variant} slds-theme_alert-texture slds-banner`;
   }
@@ -45,5 +35,11 @@ export default class Alert extends LightningElement {
 
   get iconName() {
     return variantIcons[this.variant];
+  }
+
+  connectedCallback() {
+    if (!this.showAlert) {
+      console.error(`Alert variant of ${this.variant} not allowed.`);
+    }
   }
 }

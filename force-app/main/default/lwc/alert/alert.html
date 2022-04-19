@@ -4,7 +4,7 @@
 
 <!-- Display an alert as per the lightning design system guidelines -->
 <template>
-  <div if:true={showAlert} class="slds-notify_container slds-notify_container_inline">
+  <div class="slds-notify_container slds-notify_container_inline" if:true={showAlert}>
     <div class={className}>
       <lightning-icon icon-name={iconName} size="x-small"></lightning-icon>
       &nbsp;

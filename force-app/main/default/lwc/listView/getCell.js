@@ -8,12 +8,12 @@ export const getCell = (value, column) => {
     return addUrlProtocol(getUrlHref(value));
   }
   // Turn the id into a hyperlink.
-  if(getId(value)) {
+  if (getId(value)) {
     return '/' + getId(value);
   }
   // Correctly manage a percentage (as default behaviour multiplies by 100).
-  if(column.type === 'percent') {
-    return value/100;
+  if (column.type === 'percent') {
+    return value / 100;
   }
   return value;
 }

@@ -5,7 +5,8 @@
     <div class="slds-grid">
       <div class="slds-col slds-has-flexi-truncate">
         <div class="slds-media slds-no-space slds-grow">
-          <lightning-icon if:true={iconName} class="slds-m-right_small" icon-name={iconName} size="small"></lightning-icon>
+          <lightning-icon class="slds-m-right_small" icon-name={iconName} if:true={iconName}
+                          size="small"></lightning-icon>
           <div class="slds-media__body slds-align-middle">
             <h2 class="slds-card__header-title">
               <span class="slds-truncate slds-m-right_xx-small">{title}</span>
@@ -20,7 +21,7 @@
         </div>
       </div>
     </div>
-    <div if:true={subTitle} class="slds-grid slds-m-top_x-small">
+    <div class="slds-grid slds-m-top_x-small" if:true={subTitle}>
       <div class="slds-col slds-align-bottom">
         <p class="slds-text-body_small">
           {subTitle}
