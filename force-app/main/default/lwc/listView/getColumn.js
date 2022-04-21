@@ -36,6 +36,7 @@ const getColumn = (metaData, options) => {
     label: !isColumnHide(metaData) ? metaData.label : '',
     type: dataTypes[metaData.type],
     sortable: true,
+    meta: metaData,
   };
 
   // If we have an id, show the name and hyperlink it.

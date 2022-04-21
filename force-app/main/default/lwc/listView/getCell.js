@@ -11,11 +11,21 @@ export const getCell = (value, column) => {
   if (getId(value)) {
     return '/' + getId(value);
   }
-  // Correctly manage a percentage (as default behaviour multiplies by 100).
-  if (column.type === 'percent') {
-    return value / 100;
+
+  // Translate the cell values as required.
+  switch (column.meta.type) {
+    case 'picklist':
+    case 'multipicklist':
+      return value
+        .split(';')
+        .map(value => column.meta.picklistValues.find((picklist) => picklist.value === value)?.label || value)
+        .join(', ')
+        ;
+    case 'percent':
+      return value / 100;
+    default:
+      return value;
   }
-  return value;
 }
 
 const getUrlHref = (value) => /href="(?<href>.+?)"/i.exec(value)?.groups?.href;
