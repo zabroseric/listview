@@ -73,3 +73,11 @@ export const toBoolean = (obj) => {
       return Boolean(obj);
   }
 }
+
+/**
+ * Get the ids that have been found in text, and prefer the 18 length, over the 15 length if provided.
+ *
+ * @param value
+ * @returns {string | undefined}
+ */
+export const getId = (value) => /(?<id>[a-z0-9]{18}|[a-z0-9]{15})/i.exec(value)?.groups?.id;

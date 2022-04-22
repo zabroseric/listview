@@ -30,7 +30,7 @@
         sorted-direction={sortDirection}
       >
       </lightning-datatable>
-      <div class="datatable-sidebar"></div>
+      <div class="datatable-sidebar" if:true={showTable}></div>
       <div class="datatable-placeholder" if:true={showPlaceholder}></div>
       <div class="spinner-container" if:true={isLoading}>
         <lightning-spinner alternative-text="Loading" size="medium" variant="brand"></lightning-spinner>

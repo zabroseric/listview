@@ -5,7 +5,7 @@ import getSObjectFieldsApex from '@salesforce/apex/ListViewController.getSObject
 import {NavigationMixin} from "lightning/navigation";
 import getColumn from './getColumn';
 import getRow from "./getRow";
-import {logApexFunc, titleCase, toBoolean} from "./utils";
+import {getId, logApexFunc, titleCase, toBoolean} from "./utils";
 import {
   errorMessageGeneric,
   infiniteScrollHeightDefault,
@@ -179,18 +179,6 @@ export default class ListView extends NavigationMixin(LightningElement) {
   }
 
   /**
-   * Navigate the user to a specific URL.
-   */
-  navigateUrl(url) {
-    this[NavigationMixin.Navigate]({
-      type: 'standard__webPage',
-      attributes: {
-        url: url
-      }
-    });
-  }
-
-  /**
    * Handles the sorting of data via SOQL, due to multiple pages not necessarily being in memory.
    * The method uses defaults in the case there's an issue with the sorting field.
    *
@@ -205,6 +193,27 @@ export default class ListView extends NavigationMixin(LightningElement) {
       .catch((e) => this.error = e)
       .finally(() => this.isLoading = false)
     ;
+  }
+
+  /**
+   * Navigate the user to a specific URL.
+   */
+  navigateUrl(url) {
+    let urlConfig;
+
+    if (getId(url)) {
+      urlConfig = {
+        type: 'standard__recordPage',
+        attributes: {recordId: getId(url), actionName: 'view',},
+      }
+    } else {
+      urlConfig = {
+        type: 'standard__webPage',
+        attributes: {url: url}
+      };
+    }
+
+    this[NavigationMixin.Navigate](urlConfig);
   }
 
   /**
@@ -440,7 +449,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
    */
   get sortBy() {
     return this._sortBy
-      || /order by (?<orderby>[a-z0-9_]+)/i.exec(this.soqlGroups.conditions)?.groups?.orderby?.toLowerCase()
+      || this.getFieldMetaData(/order by (?<orderby>[a-z0-9_]+)/i.exec(this.soqlGroups.conditions)?.groups?.orderby?.toLowerCase())?.name
       || this.getFieldMetaData(sortByDefault)?.name
       || sortByDefault
       ;
