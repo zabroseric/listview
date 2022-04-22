@@ -121,9 +121,6 @@ export default class ListView extends NavigationMixin(LightningElement) {
         nameFieldLabel: this.nameFieldLabel,
       }))
     ;
-
-    // Correct the sort by based on the metadata.
-    this.sortBy = this.getFieldMetaData(this.sortBy)?.name;
   }
 
   /**
