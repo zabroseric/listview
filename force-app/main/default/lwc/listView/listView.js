@@ -81,7 +81,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
    */
   async getData() {
     this.data = this.logTable = (await getSObjects({
-      soql: `SELECT ${this.fieldsValid.join(', ')} FROM ${titleCase(this.sObjectName)} ${this.whereClause}`
+      soql: `SELECT ${this.fieldsValid.join(', ')} FROM ${titleCase(this.sObjectName)} ${this.whereClause} `
         + `ORDER BY ${this.sortBy} ${this.sortDirection.toUpperCase()} LIMIT ${this.pageSize} OFFSET ${this.dataOffset}`.trim()
     })).map((row) => getRow(row, this.columns));
   }
@@ -103,11 +103,17 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @returns {Promise<void>}
    */
   async getMetaData() {
-    const dataMeta = this.dataMeta = this.debug = await getSObjectFields({sObjectName: this.sObjectName, fields: this.fields});
+    // Predict the name field.
+    const nameField = (nameFields[this.sObjectName] ?? nameFields['default'])?.toLowerCase();
 
-    // Get the name of the object, if we can't find the field, manually replace it with 'Unknown'.
-    this.nameField = (this.dataMeta[(nameFields[this.sObjectName] ?? nameFields['default'])?.toLowerCase()]?.name).toLowerCase();
-    this.nameFieldLabel = this.dataMeta[this.nameField?.toLowerCase()]?.label
+    const dataMeta = this.dataMeta = this.debug = await getSObjectFields({
+      sObjectName: this.sObjectName,
+      fields: [...new Set([...this.fields, nameField])]
+    });
+
+    // Get the name and label of the object.
+    this.nameField = this.dataMeta[nameField]?.name?.toLowerCase();
+    this.nameFieldLabel = this.dataMeta[nameField]?.label
       ?.replace('Full Name', 'Contact Name')
     ;
 
@@ -120,14 +126,6 @@ export default class ListView extends NavigationMixin(LightningElement) {
         nameField: this.nameField,
         nameFieldLabel: this.nameFieldLabel,
       }))
-      .filter((column) => {
-        // Id references of other objects aren't supported due to the complexities of dynamically referencing name fields.
-        if (column.meta.type === 'reference') {
-          console.warn(`The field ${column.fieldName} is not supported by the list view.`);
-          return false;
-        }
-        return true;
-      })
     ;
   }
 
@@ -270,7 +268,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
     General Getters and Setters
    ----------------------------------------------- */
   /**
-   * If the data is empty and we're not still loading.
+   * If the data is empty, and we're not still loading.
    *
    * @returns {boolean}
    */
@@ -279,12 +277,19 @@ export default class ListView extends NavigationMixin(LightningElement) {
   }
 
   /**
+   * Shows the no records message to the user.
+   */
+  get showDataEmpty() {
+    return !this.error && this.isDataEmpty;
+  }
+
+  /**
    * Show the table if the data isn't empty, and there are no errors.
    *
    * @returns {boolean}
    */
   get showTable() {
-    return !this.error && !this.isDataEmpty;
+    return !this.error && !this.isLoading;
   }
 
   /**
@@ -305,6 +310,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
   get fieldsValid() {
     const fields = this.columns
       .map((column) => column.fieldName)
+      .filter((column) => column)
     ;
 
     // Add the name field if it exists on the object
@@ -412,7 +418,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
   }
 
   get fields() {
-    return this.soqlGroups ? this.soqlGroups.fields.split(',').map(field => field.trim().toLowerCase()) : [];
+    return this.soqlGroups ? this.soqlGroups.fields.split(',').map(field => field.replace(/\s/g, '').toLowerCase()) : [];
   }
 
   get whereClause() {

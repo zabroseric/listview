@@ -4,16 +4,6 @@ import {getId} from "./utils";
  * Manipulates the cell value before rendering it into the datatable.
  */
 export const getCell = (value, column) => {
-
-  // Get only the url for the hyperlink.
-  if (getUrlHref(value)) {
-    return addUrlProtocol(getUrlHref(value));
-  }
-  // Turn the id into a hyperlink.
-  if (getId(value)) {
-    return '/' + getId(value);
-  }
-
   // Translate the cell values as required.
   switch (column?.meta?.type) {
     case 'picklist':
@@ -25,9 +15,21 @@ export const getCell = (value, column) => {
         ;
     case 'percent':
       return value / 100;
-    default:
-      return value;
+    case 'reference':
+      return ''; // Id references of other objects aren't supported due to the complexities of dynamically referencing name fields.
   }
+
+  // Get only the url for the hyperlink.
+  if (getUrlHref(value)) {
+    return addUrlProtocol(getUrlHref(value));
+  }
+
+  // Turn the id into a hyperlink.
+  if (getId(value)) {
+    return '/' + getId(value);
+  }
+
+  return value;
 }
 
 const getUrlHref = (value) => /href="(?<href>.+?)"/i.exec(value)?.groups?.href;

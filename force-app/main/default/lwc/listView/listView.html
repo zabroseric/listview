@@ -35,7 +35,7 @@
       <div class="spinner-container" if:true={isLoading}>
         <lightning-spinner alternative-text="Loading" size="medium" variant="brand"></lightning-spinner>
       </div>
-      <div class="empty-container slds-color__background_gray-1" if:true={isDataEmpty}>
+      <div class="empty-container slds-color__background_gray-1" if:true={showDataEmpty}>
         No items to display
       </div>
     </div>

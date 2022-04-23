@@ -34,6 +34,6 @@ const getHyperlinkLabel = (value) => /<a[^>]+>(?<label>[^<]+)/.exec(value)?.grou
 const getLatitude = (value) => value?.latitude;
 const getLongitude = (value) => value?.longitude
 
-const getColumn = (columns, fieldName) => columns.find((column) => column.fieldName.toLowerCase() === fieldName.toLowerCase());
+const getColumn = (columns, fieldName) => columns.find((column) => column.fieldName?.toLowerCase() === fieldName?.toLowerCase());
 
 export default getRow;

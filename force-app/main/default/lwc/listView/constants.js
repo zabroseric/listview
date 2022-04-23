@@ -43,7 +43,7 @@ export const dataTypes = {
   'percent': 'percent',
   'phone': 'phone',
   'picklist': 'string',
-  'reference': 'url',
+  'reference': 'string',
   'sobject': 'string',
   'string': 'string',
   'textarea': 'string',
