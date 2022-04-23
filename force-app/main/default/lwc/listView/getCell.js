@@ -15,7 +15,7 @@ export const getCell = (value, column) => {
   }
 
   // Translate the cell values as required.
-  switch (column.meta.type) {
+  switch (column?.meta?.type) {
     case 'picklist':
     case 'multipicklist':
       return value

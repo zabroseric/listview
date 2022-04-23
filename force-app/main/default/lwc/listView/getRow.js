@@ -1,26 +1,27 @@
 import {getCell} from "./getCell";
+import {flattenObject} from "./utils";
 
 /**
  * Manipulates the row values before rendering it into the datatable.
  */
 const getRow = (row, columns) => {
+  const rowFlat = flattenObject(row);
   const rowReturn = {};
-  for (let key in row) {
-    const value = row[key];
 
-    if (row.hasOwnProperty(key)) {
-      rowReturn[key] = getCell(value, getColumn(columns, key) || {});
+  for (const [key, value] of Object.entries(rowFlat)) {
+    const fieldName = key.toLowerCase();
+    rowReturn[fieldName] = getCell(value, getColumn(columns, fieldName) || {});
 
-      // If we have a hyperlink, create an additional reference field for the label.
-      if (getHyperlinkLabel(row[key])) {
-        rowReturn[`${key}-Label`] = getHyperlinkLabel(value);
-      }
-      // If we have a latitude / longitude, split them out into two columns.
-      else if (getLatitude(value) && getLongitude(value)) {
-        rowReturn[`${key}-Latitude`] = getLatitude(value);
-        rowReturn[`${key}-Longitude`] = getLongitude(value);
-      }
+    // If we have a hyperlink, create an additional reference field for the label.
+    if (getHyperlinkLabel(rowFlat[fieldName])) {
+      rowReturn[`${fieldName}-Label`] = getHyperlinkLabel(value);
     }
+    // If we have a latitude / longitude, split them out into two columns.
+    else if (getLatitude(value) && getLongitude(value)) {
+      rowReturn[`${fieldName}-Latitude`] = getLatitude(value);
+      rowReturn[`${fieldName}-Longitude`] = getLongitude(value);
+    }
+
   }
 
   // Add an unknown column, in the situations we want to show the word "Unknown" to users.
@@ -33,6 +34,6 @@ const getHyperlinkLabel = (value) => /<a[^>]+>(?<label>[^<]+)/.exec(value)?.grou
 const getLatitude = (value) => value?.latitude;
 const getLongitude = (value) => value?.longitude
 
-const getColumn = (columns, fieldName) => columns.find((column) => column.fieldName === fieldName);
+const getColumn = (columns, fieldName) => columns.find((column) => column.fieldName.toLowerCase() === fieldName.toLowerCase());
 
 export default getRow;

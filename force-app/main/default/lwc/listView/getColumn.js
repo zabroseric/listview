@@ -1,5 +1,5 @@
 import {mergeOptions} from "./utils";
-import {dataTypes} from "./constants";
+import {dataTypes, dataTypesNoSort} from "./constants";
 
 const optionDefaults = {
   urlType: 'button-base',
@@ -32,10 +32,10 @@ const getColumn = (metaData, options) => {
 
   // Base definition.
   const columnBase = {
-    fieldName: metaData.name,
+    fieldName: options.fieldName,
     label: !isColumnHide(metaData) ? metaData.label : '',
     type: dataTypes[metaData.type],
-    sortable: true,
+    sortable: !dataTypesNoSort.includes(metaData.type),
     meta: metaData,
   };
 
@@ -47,10 +47,15 @@ const getColumn = (metaData, options) => {
       typeAttributes: {
         label: {fieldName: nameField},
         variant: 'base',
-        fieldName: metaData.name,
+        fieldName: options.fieldName,
         type: 'button',
       }
     };
+  }
+
+  // Ensure that relationships are always read-only.
+  if (metaData.name.includes('.')) {
+    columnBase.editable = false;
   }
 
   // Add label to button.

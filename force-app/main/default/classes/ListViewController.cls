@@ -1,45 +1,109 @@
 public with sharing class ListViewController {
 
-    /**
-     * Get a count of SObjects based on a soql string.
-     *
-     * @param soql
-     *
-     * @return
-     */
-    @AuraEnabled
-    public static Integer getSObjectCount(String soql) {
-        return (Integer) Database.query(soql)[0].get('expr0');
-    }
+  /**
+   * Get a count of SObjects based on a soql string.
+   *
+   * @param soql
+   *
+   * @return
+   */
+  @AuraEnabled
+  public static Integer getSObjectCount(String soql)
+  {
+    return (Integer) Database.query(soql)[0].get('expr0');
+  }
 
-    /**
-     * Get a list of SObjects based on a soql string.
-     *
-     * @param soql
-     *
-     * @return
-     */
-    @AuraEnabled
-    public static List<SObject> getSObjects(String soql) {
-        return Database.query(soql);
-    }
+  /**
+   * Get a list of SObjects based on a soql string.
+   *
+   * @param soql
+   *
+   * @return
+   */
+  @AuraEnabled
+  public static List<SObject> getSObjects(String soql)
+  {
+    return Database.query(soql);
+  }
 
-    /**
-     * Returns a full list of fields definitions based on the DescribeFieldResult class.
-     *
-     * @src https://developer.salesforce.com/docs/atlas.en-us.apexref.meta/apexref/apex_methods_system_fields_describe.htm
-     * @param sObjectName
-     *
-     * @return
-     */
-    @AuraEnabled(Cacheable=true)
-    public static Map<String, Object> getSObjectFields(String sObjectName) {
-        Map<String, Object> fieldDefinitions = new Map<String, Object>();
-        List<Schema.SObjectField> fields = Schema.getGlobalDescribe().get(sObjectName).getDescribe().fields.getMap().values();
+  /**
+   * Returns a list of serialized fields definitions based on the DescribeFieldResult class.
+   * The list is restricted based on the fields provided, and is able to transverse unlimited relationship fields.
+   *
+   * @src https://developer.salesforce.com/docs/atlas.en-us.apexref.meta/apexref/apex_methods_system_fields_describe.htm
+   * @param sObjectName
+   * @param fields
+   *
+   * @return
+   */
+  @AuraEnabled(Cacheable=true)
+  public static Map<String, Object> getSObjectFields(String sObjectName, List<String> fields)
+  {
+    Map<String, DescribeFieldResult> sObjDescribeFields = getSObjectDescribes(sObjectName);
+    Map<String, Object> fieldDefinitions = new Map<String, Object>();
 
-        for (Schema.SObjectField field : fields) {
-            fieldDefinitions.put(field.getDescribe().getName().toLowerCase(), JSON.deserializeUntyped(JSON.serialize(field.getDescribe())));
+    for (String fieldName : listStringLower(fields)) {
+      String fieldNamePrimary = fieldName.split('\\.')[0];
+      String fieldNameRelationship = fieldName.removeStart(fieldNamePrimary + '.');
+      DescribeFieldResult fieldDescribe = sObjDescribeFields.get(fieldNamePrimary);
+
+      // If the field doesn't exist on the object add it to the map.
+      if (fieldDescribe == null) {
+        continue;
+      }
+
+      // If we have a standard field, return the serialized describe.
+      // Otherwise, recursively call this method to get the nested relationship.
+      if (fieldDescribe.getRelationshipName() == null || !fieldName.contains('.')) {
+        fieldDefinitions.put(fieldDescribe.getName().toLowerCase(), JSON.deserializeUntyped(JSON.serialize(fieldDescribe)));
+      } else {
+        List<Object> sObjFields = getSObjectFields(sObjectName, new List<String>{fieldNameRelationship}).values();
+        if (!sObjFields.isEmpty()) {
+          fieldDefinitions.put(fieldName, sObjFields.get(0));
         }
-        return fieldDefinitions;
+      }
     }
+    return fieldDefinitions;
+  }
+
+
+  /**
+   * Get a map of field describes, and include either the field name or the relationship name
+   * as a lower case key.
+   *
+   * @param sObjectName
+   *
+   * @return
+   */
+  private static Map<String, DescribeFieldResult> getSObjectDescribes(String sObjectName)
+  {
+    Map<String, Schema.SObjectField> sObjSchema = Schema.getGlobalDescribe().get(sObjectName).getDescribe().fields.getMap();
+    Map<String, DescribeFieldResult> sObjDescribe = new Map<String, DescribeFieldResult>();
+
+    for (String fieldName : sObjSchema.keySet()) {
+      DescribeFieldResult fieldDescribe = sObjSchema.get(fieldName).getDescribe();
+
+      if (fieldDescribe.getRelationshipName() != null) {
+        sObjDescribe.put(fieldDescribe.getRelationshipName().toLowerCase(), fieldDescribe);
+      }
+      sObjDescribe.put(fieldDescribe.getName().toLowerCase(), fieldDescribe);
+    }
+    return sObjDescribe;
+  }
+
+  /**
+   * Utility method to convert a list of strings to lowercase.
+   *
+   * @param strList
+   *
+   * @return
+   */
+  private static List<String> listStringLower(List<String> strList)
+  {
+    List<String> stringList = new List<String>();
+    for (String str : strList) {
+      stringList.add(str.toLowerCase());
+    }
+    return stringList;
+  }
 }

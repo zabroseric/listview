@@ -103,10 +103,10 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @returns {Promise<void>}
    */
   async getMetaData() {
-    const dataMeta = this.dataMeta = this.debug = await getSObjectFields({sObjectName: this.sObjectName});
+    const dataMeta = this.dataMeta = this.debug = await getSObjectFields({sObjectName: this.sObjectName, fields: this.fields});
 
     // Get the name of the object, if we can't find the field, manually replace it with 'Unknown'.
-    this.nameField = this.dataMeta[(nameFields[this.sObjectName] ?? nameFields['default'])?.toLowerCase()]?.name;
+    this.nameField = (this.dataMeta[(nameFields[this.sObjectName] ?? nameFields['default'])?.toLowerCase()]?.name).toLowerCase();
     this.nameFieldLabel = this.dataMeta[this.nameField?.toLowerCase()]?.label
       ?.replace('Full Name', 'Contact Name')
     ;

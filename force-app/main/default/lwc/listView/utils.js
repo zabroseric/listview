@@ -80,4 +80,31 @@ export const toBoolean = (obj) => {
  * @param value
  * @returns {string | undefined}
  */
-export const getId = (value) => /(?<id>[a-z0-9]{18}|[a-z0-9]{15})/i.exec(value)?.groups?.id;
+export const getId = (value) => /^\/?(?<id>[a-z0-9]{18}|[a-z0-9]{15}$)/i.exec(value)?.groups?.id;
+
+/**
+ * Flattens an object and combined the keys by delimiting them by a dot.
+ *
+ * @src https://stackoverflow.com/questions/44134212/best-way-to-flatten-js-object-keys-and-values-to-a-single-depth-array
+ * @param obj
+ * @returns {{}}
+ */
+export const flattenObject = (obj) => {
+  const toReturn = {};
+
+  for (let i in obj) {
+    if (!obj.hasOwnProperty(i)) continue;
+
+    if ((typeof obj[i]) == 'object' && obj[i] !== null) {
+      const flatObject = flattenObject(obj[i]);
+      for (let x in flatObject) {
+        if (!flatObject.hasOwnProperty(x)) continue;
+
+        toReturn[i + '.' + x] = flatObject[x];
+      }
+    } else {
+      toReturn[i] = obj[i];
+    }
+  }
+  return toReturn;
+}

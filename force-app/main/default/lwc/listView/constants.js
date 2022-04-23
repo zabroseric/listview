@@ -12,6 +12,14 @@ export const nameFields = {
   'default': 'Name',
 };
 
+// SOQL sorting is not supported for these data types.
+export const dataTypesNoSort = [
+  'multipicklist',
+  'picklist',
+  'textarea',
+  'encryptedstring',
+];
+
 export const dataTypes = {
   'address': 'string',
   'anytype': 'string',
@@ -35,7 +43,7 @@ export const dataTypes = {
   'percent': 'percent',
   'phone': 'phone',
   'picklist': 'string',
-  'reference': 'string',
+  'reference': 'url',
   'sobject': 'string',
   'string': 'string',
   'textarea': 'string',
