@@ -5,7 +5,7 @@ const optionDefaults = {
   urlType: 'button-base',
   fieldName: undefined, // Original field name provided (useful if the column is invalid).
   nameField: 'unknown', // Defines the object main reference (e.g. Name, CaseNumber ..etc).
-  nameFieldLabel: 'Name', // Defines the object main reference (e.g. Name, CaseNumber ..etc).
+  nameFieldLabel: 'Name',
 };
 
 /**
@@ -65,7 +65,7 @@ const getColumn = (metaData, options) => {
       type: 'button',
       cellAttributes: {alignment: getButtonVariant(urlType) === 'base' ? 'left' : 'center'},
       typeAttributes: {
-        label: getHyperlinkStaticLabel(formula) ? getHyperlinkStaticLabel(formula) : {fieldName: `${columnBase.fieldName}-Label`},
+        label: getHyperlinkStaticLabel(formula) ? getHyperlinkStaticLabel(formula) : {fieldName: `${columnBase.fieldName}-label`},
         variant: getButtonVariant(urlType),
         fieldName: metaData.name,
         type: 'button',
@@ -121,8 +121,8 @@ const getColumn = (metaData, options) => {
       return {
         ...columnBase,
         typeAttributes: {
-          latitude: `${columnBase.fieldName}-Latitude`,
-          longitude: `${columnBase.fieldName}-Longitude`,
+          latitude: `${columnBase.fieldName}-latitude`,
+          longitude: `${columnBase.fieldName}-longitude`,
         },
       };
     default:

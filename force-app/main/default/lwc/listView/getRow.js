@@ -14,12 +14,12 @@ const getRow = (row, columns) => {
 
     // If we have a hyperlink, create an additional reference field for the label.
     if (getHyperlinkLabel(rowFlat[fieldName])) {
-      rowReturn[`${fieldName}-Label`] = getHyperlinkLabel(value);
+      rowReturn[`${fieldName}-label`] = getHyperlinkLabel(value);
     }
     // If we have a latitude / longitude, split them out into two columns.
     else if (getLatitude(value) && getLongitude(value)) {
-      rowReturn[`${fieldName}-Latitude`] = getLatitude(value);
-      rowReturn[`${fieldName}-Longitude`] = getLongitude(value);
+      rowReturn[`${fieldName}-latitude`] = getLatitude(value);
+      rowReturn[`${fieldName}-longitude`] = getLongitude(value);
     }
 
   }
