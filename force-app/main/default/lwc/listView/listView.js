@@ -81,7 +81,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
    */
   async getData() {
     this.data = this.logTable = (await getSObjects({
-      soql: `SELECT ${this.fieldsValid.join(', ')} FROM ${titleCase(this.sObjectName)} ${this.whereClause} `
+      soql: `SELECT ${this.fieldsValid.join(', ')} FROM ${titleCase(this.sObjectName)} ${this.whereClause}`.trim() + ' '
         + `ORDER BY ${this.sortBy} ${this.sortDirection.toUpperCase()} LIMIT ${this.pageSize} OFFSET ${this.dataOffset}`.trim()
     })).map((row) => getRow(row, this.columns));
   }
@@ -458,11 +458,11 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @returns {string|string}
    */
   get sortBy() {
-    return this._sortBy
+    return (this._sortBy
       || this.getFieldMetaData(/order by (?<orderby>[a-z0-9_]+)/i.exec(this.soqlGroups.conditions)?.groups?.orderby?.toLowerCase())?.name
       || this.getFieldMetaData(sortByDefault)?.name
       || sortByDefault
-      ;
+    ).toLowerCase();
   }
 
   @api set sortBy(value) {
