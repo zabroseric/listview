@@ -114,12 +114,20 @@ export default class ListView extends NavigationMixin(LightningElement) {
     this.columns = this.debug = this.fields
       .map((field) => field.toLowerCase()) // Convert to lowercase.
       .map((field) => dataMeta[field]) // Get the respective metadata.
-      .map((field, index) => getColumn(field, { // Generate the columns and pass options.
+      .map((metaData, index) => getColumn(metaData, { // Generate the columns and pass options.
         urlType: this.urlType,
         fieldName: this.fields[index],
         nameField: this.nameField,
         nameFieldLabel: this.nameFieldLabel,
       }))
+      .filter((column) => {
+        // Id references of other objects aren't supported due to the complexities of dynamically referencing name fields.
+        if (column.meta.type === 'reference') {
+          console.warn(`The field ${column.fieldName} is not supported by the list view.`);
+          return false;
+        }
+        return true;
+      })
     ;
   }
 
@@ -297,7 +305,6 @@ export default class ListView extends NavigationMixin(LightningElement) {
   get fieldsValid() {
     const fields = this.columns
       .map((column) => column.fieldName)
-      .filter((value) => value)
     ;
 
     // Add the name field if it exists on the object
