@@ -189,7 +189,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
    */
   onSort(event) {
     this.sortBy = this.rewriteFieldName(event.detail.fieldName);
-    this.sortDirection = event.detail._sortDirection;
+    this.sortDirection = event.detail.sortDirection;
     this.isLoading = true;
 
     this.getData()
@@ -289,7 +289,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @returns {boolean}
    */
   get showTable() {
-    return !this.error && !this.isLoading;
+    return !this.error && !this.isDataEmpty;
   }
 
   /**
