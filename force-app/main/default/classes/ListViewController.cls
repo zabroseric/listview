@@ -54,10 +54,10 @@ public with sharing class ListViewController {
 
       // If we have a standard field, return the serialized describe.
       // Otherwise, recursively call this method to get the nested relationship.
-      if (fieldDescribe.getRelationshipName() == null || !fieldName.contains('.')) {
+      if (fieldDescribe.getRelationshipName() == null || fieldDescribe.getReferenceTo().isEmpty() || !fieldName.contains('.')) {
         fieldDefinitions.put(fieldDescribe.getName().toLowerCase(), JSON.deserializeUntyped(JSON.serialize(fieldDescribe)));
       } else {
-        List<Object> sObjFields = getSObjectFields(sObjectName, new List<String>{fieldNameRelationship}).values();
+        List<Object> sObjFields = getSObjectFields(String.valueOf(fieldDescribe.getReferenceTo().get(0)), new List<String>{fieldNameRelationship}).values();
         if (!sObjFields.isEmpty()) {
           fieldDefinitions.put(fieldName, sObjFields.get(0));
         }
