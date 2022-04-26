@@ -34,7 +34,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
   _showRowNumber;
   _infiniteScrolling;
   _infiniteScrollingAdditionalRows;
-  _infiniteScrollingHeight = 500;
+  _infiniteScrollingHeight = infiniteScrollHeightDefault;
   _urlType;
 
   // Editing of information.
