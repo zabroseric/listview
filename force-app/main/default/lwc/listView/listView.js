@@ -279,6 +279,11 @@ export default class ListView extends NavigationMixin(LightningElement) {
         }
       };
 
+      // If only field errors were found.
+      if (this.fieldErrors.table.messages.length === 0) {
+        this.fieldErrors.table.messages = ['Please see the rows for more details.'];
+      }
+
       console.debug(this.fieldErrors);
       console.error(errorResults);
     } finally {
