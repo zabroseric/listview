@@ -26,7 +26,7 @@ export const getCell = (value, column) => {
 
   // Turn the id into a hyperlink.
   if (getId(value)) {
-    return '/' + getId(value);
+    return getId(value);
   }
 
   return value;

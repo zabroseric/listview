@@ -18,16 +18,19 @@
       <lightning-datatable
         columns={columns}
         data={data}
+        draft-values={draftValues}
         enable-infinite-loading={infiniteScrolling}
         hide-checkbox-column
         if:true={showTable}
         key-field="id"
         onloadmore={onLoadMore}
         onrowaction={onRowAction}
+        onsave={onSave}
         onsort={onSort}
         show-row-number-column={showRowNumber}
         sorted-by={sortBy}
         sorted-direction={sortDirection}
+        errors={fieldErrors}
       >
       </lightning-datatable>
       <div class="datatable-sidebar" if:true={showTable}></div>

@@ -5,7 +5,7 @@ import getSObjectFieldsApex from '@salesforce/apex/ListViewController.getSObject
 import {NavigationMixin} from "lightning/navigation";
 import getColumn from './getColumn';
 import getRow from "./getRow";
-import {getId, logApexFunc, titleCase, toBoolean} from "./utils";
+import {flattenObject, getId, logApexFunc, titleCase, toBoolean} from "./utils";
 import {
   errorMessageGeneric,
   infiniteScrollHeightDefault,
@@ -15,11 +15,14 @@ import {
   sortByDefault,
   sortDirectionDefault
 } from "./constants";
+import {updateRecord as updateRecordApex} from "lightning/uiRecordApi";
+import {ShowToastEvent} from "lightning/platformShowToastEvent";
 
 // Wrap the apex functions using a decorative pattern for logging.
 const getSObjects = logApexFunc('getSObjects', getSObjectsApex);
 const getSObjectCount = logApexFunc('getSObjectCount', getSObjectCountApex);
 const getSObjectFields = logApexFunc('getSObjectFields', getSObjectFieldsApex);
+const updateRecord = logApexFunc('updateRecord', updateRecordApex, true);
 
 export default class ListView extends NavigationMixin(LightningElement) {
 
@@ -50,6 +53,8 @@ export default class ListView extends NavigationMixin(LightningElement) {
   nameField;
   nameFieldLabel;
   isLoading = true;
+  draftValues;
+  fieldErrors;
 
   columns = [];
   data = [];
@@ -82,7 +87,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
   async getData() {
     this.data = this.logTable = (await getSObjects({
       soql: `SELECT ${this.fieldsValid.join(', ')} FROM ${titleCase(this.sObjectName)} ${this.whereClause}`.trim() + ' '
-        + `ORDER BY ${this.sortBy} ${this.sortDirection.toUpperCase()} LIMIT ${this.pageSize} OFFSET ${this.dataOffset}`.trim()
+        + `ORDER BY ${this.rewriteFieldName(this.sortBy)} ${this.sortDirection.toUpperCase()} LIMIT ${this.pageSize} OFFSET ${this.dataOffset}`.trim()
     })).map((row) => getRow(row, this.columns));
   }
 
@@ -125,6 +130,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
         fieldName: this.fields[index],
         nameField: this.nameField,
         nameFieldLabel: this.nameFieldLabel,
+        editFieldsList: this.editFieldsList
       }))
     ;
   }
@@ -188,7 +194,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @param event
    */
   onSort(event) {
-    this.sortBy = this.rewriteFieldName(event.detail.fieldName);
+    this.sortBy = event.detail.fieldName;
     this.sortDirection = event.detail.sortDirection;
     this.isLoading = true;
 
@@ -196,6 +202,88 @@ export default class ListView extends NavigationMixin(LightningElement) {
       .catch((e) => this.error = e)
       .finally(() => this.isLoading = false)
     ;
+  }
+
+  /**
+   * Handles the save functionality.
+   *
+   * @param event
+   */
+  async onSave(event) {
+    this.isLoading = true;
+
+    // Convert fields from lower case to their proper case.
+    const recordInputs = event.detail.draftValues.slice().map(fields => ({
+      fields: {
+        ...Object.fromEntries(Object.entries(fields).map(([key, val]) => ([this.dataMeta[key].name, val]))),
+      }
+    }));
+
+    // Update all records in one go.
+    const promises = recordInputs.map(recordInput => updateRecord(recordInput));
+    try {
+      const results = await Promise.allSettled(promises);
+
+      // If we have errors, throw the results.
+      if (results.find((result) => result.status === 'rejected') !== undefined) {
+        throw results;
+      }
+
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: 'Success',
+          message: 'Records updated',
+          variant: 'success'
+        })
+      );
+      this.draftValues = [];
+      this.refreshData();
+    } catch (results) {
+
+      // Build an errors object containing all info.
+      const errorResults = results
+        .map((result, index) => (
+          {
+            id: recordInputs[index].fields.Id,
+            status: result.status,
+            detail: {
+              fieldErrors: flattenObject(result?.reason?.body?.output?.fieldErrors ?? {}),
+              errors: result?.reason?.body?.output?.errors ?? []
+            }
+          }))
+        .filter((result) => result.status === 'rejected')
+
+      // Set the errors based on what has been returned to us.
+      this.fieldErrors = {
+        // Field errors.
+        rows: Object.assign({}, ...errorResults.map((result) => ({
+            [result.id]: {
+              title: 'An error occurred.',
+              fieldNames: Object.entries(result.detail.fieldErrors)
+                .filter(([key,]) => key.match(/\.field$/) !== null)
+                .map(([, value]) => value.toLowerCase()),
+              messages: Object.entries(result.detail.fieldErrors)
+                .filter(([key,]) => key.match(/\.message$/) !== null)
+                .map(([, value]) => value)
+            }
+          }))
+            .filter((error) => Object.values(error)[0]?.messages?.length > 0)
+        ),
+        // Page errors.
+        table: {
+          title: 'An error occurred.',
+          messages: Object.assign([],
+            ...errorResults.map((result) => result.detail.errors.map((error) => error.message))
+              .filter((error) => error)
+          )
+        }
+      };
+
+      console.debug(this.fieldErrors);
+      console.error(errorResults);
+    } finally {
+      this.isLoading = false;
+    }
   }
 
   /**
@@ -216,6 +304,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
       };
     }
 
+    console.debug('Redirecting with parameters', urlConfig);
     this[NavigationMixin.Navigate](urlConfig);
   }
 
@@ -261,7 +350,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @returns {*}
    */
   rewriteFieldName(fieldName) {
-    return fieldName === 'Id' ? this.nameField : fieldName;
+    return fieldName?.toLowerCase() === 'id' ? this.nameField : fieldName;
   }
 
   /* -----------------------------------------------
@@ -597,6 +686,13 @@ export default class ListView extends NavigationMixin(LightningElement) {
 
   get editFields() {
     return this._editFields;
+  }
+
+  get editFieldsList() {
+    return (this._editFields || '')
+      .split(/[^a-z0-9_]+/gi)
+      .map((field) => field.toLowerCase())
+      ;
   }
 
   @api set editFields(value) {

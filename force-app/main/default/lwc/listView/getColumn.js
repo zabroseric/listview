@@ -6,6 +6,7 @@ const optionDefaults = {
   fieldName: undefined, // Original field name provided (useful if the column is invalid).
   nameField: 'unknown', // Defines the object main reference (e.g. Name, CaseNumber ..etc).
   nameFieldLabel: 'Name',
+  editFieldsList: [],
 };
 
 /**
@@ -28,7 +29,7 @@ const getColumn = (metaData, options) => {
   }
 
   const formula = metaData.calculatedFormula;
-  const {urlType, nameField, nameFieldLabel} = mergeOptions(optionDefaults, options);
+  const {urlType, nameField, nameFieldLabel, editFieldsList} = mergeOptions(optionDefaults, options);
 
   // Base definition.
   const columnBase = {
@@ -37,10 +38,11 @@ const getColumn = (metaData, options) => {
     type: dataTypes[metaData.type],
     sortable: !dataTypesNoSort.includes(metaData.type),
     meta: metaData,
+    editable: editFieldsList.includes(options.fieldName)
   };
 
   // If we have an id, show the name and hyperlink it.
-  if (metaData.name === 'Id') {
+  if (metaData.name.toLowerCase() === 'id') {
     return {
       ...columnBase,
       label: nameFieldLabel,
@@ -67,7 +69,7 @@ const getColumn = (metaData, options) => {
       typeAttributes: {
         label: getHyperlinkStaticLabel(formula) ? getHyperlinkStaticLabel(formula) : {fieldName: `${columnBase.fieldName}-label`},
         variant: getButtonVariant(urlType),
-        fieldName: metaData.name,
+        fieldName: metaData.name.toLowerCase(),
         type: 'button',
         sortable: false,
       }

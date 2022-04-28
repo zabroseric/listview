@@ -35,17 +35,20 @@
   min-height: 120px;
 }
 
-/*
-  Add an invisible block on the right of the datatable
-  to hide the right most resizing line.
- */
 .datatable-container {
+  --lwc-colorBackground: #fff;
+  --lwc-shadowDocked: none;
+
   position: relative;
   margin-bottom: -1px;
   margin-right: -1px;
   overflow: hidden;
 }
 
+/*
+  Add an invisible block on the right of the datatable
+  to hide the right most resizing line.
+ */
 .datatable-sidebar {
   position: absolute;
   top: 0;

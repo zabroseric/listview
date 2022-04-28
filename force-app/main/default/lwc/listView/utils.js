@@ -15,8 +15,9 @@ export const titleCase = (string) => (string || '').replace(/\w\S*/g,
 export const filterObj = (obj) => {
   let newObj = {};
   Object.keys(obj).forEach((key) => {
-    if (obj[key] === Object(obj[key])) newObj[key] = filterObj(obj[key]);
-    else if (obj[key] !== undefined) newObj[key] = obj[key];
+    if (obj[key] !== undefined) {
+      newObj[key] = obj[key];
+    }
   });
   return newObj;
 };
@@ -34,9 +35,10 @@ export const mergeOptions = (objDefaults, objOptions) => ({...objDefaults, ...fi
  *
  * @param funcName
  * @param func
+ * @param originalError
  * @returns {function(...[*]): *}
  */
-export const logApexFunc = (funcName, func) => {
+export const logApexFunc = (funcName, func, originalError = false) => {
   return async (...props) => {
     try {
       console.debug(`Running ${funcName} with props: `, ...props);
@@ -44,6 +46,9 @@ export const logApexFunc = (funcName, func) => {
       console.debug(`Result of ${funcName}:`, result);
       return result;
     } catch (e) {
+      if (originalError) {
+        throw e;
+      }
       throw e?.body?.message || e?.message || e;
     }
   }
@@ -80,7 +85,7 @@ export const toBoolean = (obj) => {
  * @param value
  * @returns {string | undefined}
  */
-export const getId = (value) => /^\/?(?<id>[a-z0-9]{18}|[a-z0-9]{15}$)/i.exec(value)?.groups?.id;
+export const getId = (value) => /^(?<id>[a-z0-9]{18}|[a-z0-9]{15})$/i.exec(value)?.groups?.id;
 
 /**
  * Flattens an object and combined the keys by delimiting them by a dot.
