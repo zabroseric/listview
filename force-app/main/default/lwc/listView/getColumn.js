@@ -1,12 +1,11 @@
 import {mergeOptions} from "./utils";
-import {dataTypes, dataTypesNoSort} from "./constants";
+import {dataTypes, dataTypesNoSort, fieldLabelsReplace, nameFields} from "./constants";
 
 const optionDefaults = {
   urlType: 'button-base',
   fieldName: undefined, // Original field name provided (useful if the column is invalid).
-  nameField: 'unknown', // Defines the object main reference (e.g. Name, CaseNumber ..etc).
-  nameFieldLabel: 'Name',
   editFieldsList: [],
+  metaDataRelationship: undefined,
 };
 
 /**
@@ -29,12 +28,12 @@ const getColumn = (metaData, options) => {
   }
 
   const formula = metaData.calculatedFormula;
-  const {urlType, nameField, nameFieldLabel, editFieldsList} = mergeOptions(optionDefaults, options);
+  const {urlType, editFieldsList, metaDataRelationship} = mergeOptions(optionDefaults, options);
 
   // Base definition.
   const columnBase = {
     fieldName: options.fieldName,
-    label: !isColumnHide(metaData) ? metaData.label : '',
+    label: replaceFieldLabel(!isColumnHide(metaData) ? metaData.label : ''),
     type: dataTypes[metaData.type],
     sortable: !dataTypesNoSort.includes(metaData.type),
     meta: metaData,
@@ -42,14 +41,15 @@ const getColumn = (metaData, options) => {
   };
 
   // If we have an id, show the name and hyperlink it.
-  if (metaData.name.toLowerCase() === 'id') {
+  if (metaDataRelationship && metaDataRelationship?.label) {
     return {
       ...columnBase,
-      label: nameFieldLabel,
+      type: 'button',
+      label: replaceFieldLabel(metaDataRelationship.label),
       typeAttributes: {
-        label: {fieldName: nameField},
+        fieldName: {fieldName: 'id'},
+        label: {fieldName: options.fieldName},
         variant: 'base',
-        fieldName: options.fieldName,
         type: 'button',
       }
     };
@@ -137,5 +137,7 @@ const isColumnHide = (metaData) => /(hidden)/i.exec(metaData.label) !== null;
 
 const getHyperlinkStaticLabel = (value) => /hyperlink\([^,]+,\s*"(?<label>[^"]+)"/i.exec(value)?.groups?.label;
 const getButtonVariant = (value) => /button-(?<variant>.+)/.exec(value)?.groups?.variant;
+
+export const replaceFieldLabel = (fieldLabel) => fieldLabel in fieldLabelsReplace ? fieldLabelsReplace[fieldLabel] : fieldLabel;
 
 export default getColumn;

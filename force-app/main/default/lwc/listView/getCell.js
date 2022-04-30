@@ -15,8 +15,6 @@ export const getCell = (value, column) => {
         ;
     case 'percent':
       return value / 100;
-    case 'reference':
-      return ''; // Id references of other objects aren't supported due to the complexities of dynamically referencing name fields.
   }
 
   // Get only the url for the hyperlink.

@@ -5,11 +5,17 @@ export const sortByDefault = 'id';
 export const sortDirectionDefault = 'asc';
 export const infiniteScrollHeightDefault = 500;
 
-// The name field to be used when an id is referenced.
-export const nameFields = {
-  'case': 'CaseNumber',
-  'order': 'OrderNumber',
-  'default': 'Name',
+// A list of special fields that should provide a link to the record id.
+export const nameFields = [
+  'casenumber',
+  'ordernumber',
+  'name',
+];
+
+// A list of all field names that should be replaced.
+export const fieldLabelsReplace = {
+  'Full Name': 'Contact Name',
+  'Owner ID': 'Owner',
 };
 
 // SOQL sorting is not supported for these data types.
@@ -20,6 +26,7 @@ export const dataTypesNoSort = [
   'encryptedstring',
 ];
 
+// Provides the mapping between apex and datatable column types.
 export const dataTypes = {
   'address': 'string',
   'anytype': 'string',
@@ -34,7 +41,7 @@ export const dataTypes = {
   'double': 'number',
   'email': 'email',
   'encryptedstring': 'string',
-  'id': 'button',
+  'id': 'string',
   'integer': 'number',
   'json': 'string',
   'location': 'location',

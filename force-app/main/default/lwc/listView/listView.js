@@ -50,8 +50,6 @@ export default class ListView extends NavigationMixin(LightningElement) {
   _error;
   dataOffset = 0;
   dataTotalCount;
-  nameField;
-  nameFieldLabel;
   isLoading = true;
   draftValues;
   fieldErrors;
@@ -87,7 +85,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
   async getData() {
     this.data = this.logTable = (await getSObjects({
       soql: `SELECT ${this.fieldsValid.join(', ')} FROM ${titleCase(this.sObjectName)} ${this.whereClause}`.trim() + ' '
-        + `ORDER BY ${this.rewriteFieldName(this.sortBy)} ${this.sortDirection.toUpperCase()} LIMIT ${this.pageSize} OFFSET ${this.dataOffset}`.trim()
+        + `ORDER BY ${this.sortBy} ${this.sortDirection.toUpperCase()} LIMIT ${this.pageSize} OFFSET ${this.dataOffset}`.trim()
     })).map((row) => getRow(row, this.columns));
   }
 
@@ -108,19 +106,12 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @returns {Promise<void>}
    */
   async getMetaData() {
-    // Predict the name field.
-    const nameField = (nameFields[this.sObjectName] ?? nameFields['default'])?.toLowerCase();
+    const fieldRelationshipIds = this.fieldRelationshipIds;
 
     const dataMeta = this.dataMeta = this.debug = await getSObjectFields({
       sObjectName: this.sObjectName,
-      fields: [...new Set([...this.fields, nameField])]
+      fields: [...new Set([...this.fields, ...this.fieldIds])]
     });
-
-    // Get the name and label of the object.
-    this.nameField = this.dataMeta[nameField]?.name?.toLowerCase();
-    this.nameFieldLabel = this.dataMeta[nameField]?.label
-      ?.replace('Full Name', 'Contact Name')
-    ;
 
     this.columns = this.debug = this.fields
       .map((field) => field.toLowerCase()) // Convert to lowercase.
@@ -128,9 +119,8 @@ export default class ListView extends NavigationMixin(LightningElement) {
       .map((metaData, index) => getColumn(metaData, { // Generate the columns and pass options.
         urlType: this.urlType,
         fieldName: this.fields[index],
-        nameField: this.nameField,
-        nameFieldLabel: this.nameFieldLabel,
-        editFieldsList: this.editFieldsList
+        editFieldsList: this.editFieldsList,
+        metaDataRelationship: dataMeta[fieldRelationshipIds[this.fields[index]]],
       }))
     ;
   }
@@ -156,9 +146,9 @@ export default class ListView extends NavigationMixin(LightningElement) {
     const action = event.detail.action;
     const row = event.detail.row;
 
-    // If a url button has been pressed.
+    // Get the url from a referenced field, or current cell value.
     if (action?.type === 'button') {
-      this.navigateUrl(row[action?.fieldName]);
+      this.navigateUrl(row[action?.fieldName?.fieldName] ?? row[action?.fieldName]);
     }
   }
 
@@ -205,7 +195,8 @@ export default class ListView extends NavigationMixin(LightningElement) {
   }
 
   /**
-   * Handles the save functionality.
+   * Handles the save functionality by using the standard updateRecord action.
+   * Any errors returned are then interpreted and display in the datatable accordingly.
    *
    * @param event
    */
@@ -238,8 +229,8 @@ export default class ListView extends NavigationMixin(LightningElement) {
       );
       this.draftValues = [];
       this.refreshData();
-    } catch (results) {
 
+    } catch (results) {
       // Build an errors object containing all info.
       const errorResults = results
         .map((result, index) => (
@@ -345,17 +336,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @returns {*}
    */
   getFieldMetaData(fieldName) {
-    return this.dataMeta[this.rewriteFieldName(fieldName)?.toLowerCase()];
-  }
-
-  /**
-   * Rewrite the field name allowing another to be used where required.
-   *
-   * @param fieldName
-   * @returns {*}
-   */
-  rewriteFieldName(fieldName) {
-    return fieldName?.toLowerCase() === 'id' ? this.nameField : fieldName;
+    return this.dataMeta[fieldName?.toLowerCase()];
   }
 
   /* -----------------------------------------------
@@ -407,11 +388,34 @@ export default class ListView extends NavigationMixin(LightningElement) {
       .filter((column) => column)
     ;
 
-    // Add the name field if it exists on the object
-    this.nameField && fields.push(this.nameField);
-
     // Make sure the list of fields are unique.
     return [...new Set([...fields])];
+  }
+
+  /**
+   * Get a list of field ids that should be included in any fetches.
+   * E.g. Account.Name should include Account.Id as part of the SOQL.
+   *
+   * @returns
+   */
+  get fieldIds() {
+    return [...this.fields
+      .filter((fieldName) => nameFields.includes(fieldName.replace(/.+\.([^.]+)$/, '$1')))
+      .map((fieldName) => (fieldName.replace(/\.[^.]+$/, '.id')))
+    ];
+  }
+
+  /**
+   * Gets the relationship between the names of the object and the relationship they came from.
+   * For example: Account.Name => Account, My_Custom_Account__r.Name => My_Custom_Account__c, Account.Owner.Name => Account.Owner
+   *
+   * @returns {unknown}
+   */
+  get fieldRelationshipIds() {
+    return Object.assign({}, ...this.fields
+      .filter((fieldName) => nameFields.includes(fieldName.replace(/.+\.([^.]+)$/, '$1')))
+      .map((fieldName) => ({[fieldName]: fieldName.replace(/\.[^.]+$/, '').replace(/__r$/, '__c')}))
+    );
   }
 
   /**
