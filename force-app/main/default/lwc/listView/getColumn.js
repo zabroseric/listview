@@ -1,4 +1,4 @@
-import {mergeOptions} from "./utils";
+import {mergeOptions} from "c/utils";
 import {dataTypes, dataTypesNoSort, fieldLabelsReplace, nameFields} from "./constants";
 
 const optionDefaults = {

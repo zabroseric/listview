@@ -1,4 +1,4 @@
-import {getId} from "./utils";
+import {getId} from "c/utils";
 
 /**
  * Manipulates the cell value before rendering it into the datatable.

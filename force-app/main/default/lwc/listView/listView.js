@@ -5,7 +5,7 @@ import getSObjectFieldsApex from '@salesforce/apex/ListViewController.getSObject
 import {NavigationMixin} from "lightning/navigation";
 import getColumn from './getColumn';
 import getRow from "./getRow";
-import {flattenObject, getId, logApexFunc, titleCase, toBoolean} from "./utils";
+import {flattenObject, getId, logApexFunc, titleCase, toBoolean} from "c/utils";
 import {
   errorMessageGeneric,
   infiniteScrollHeightDefault,
@@ -128,7 +128,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
   /**
    * Refreshes the data by wrapping the call and managing the loading state.
    */
-  refreshData() {
+  @api refreshData() {
     this.isLoading = true;
 
     this.getData()
@@ -511,19 +511,19 @@ export default class ListView extends NavigationMixin(LightningElement) {
   /* -----------------------------------------------
     Dynamic Getters from the SOQL Statement
    ----------------------------------------------- */
-  get sObjectName() {
+  @api get sObjectName() {
     return this.soqlGroups ? this.soqlGroups.sObjectName.toLowerCase() : '';
   }
 
-  get fields() {
+  @api get fields() {
     return this.soqlGroups ? this.soqlGroups.fields.split(',').map(field => field.replace(/\s/g, '').toLowerCase()) : [];
   }
 
-  get whereClause() {
+  @api get whereClause() {
     return (this.soqlGroups.conditions || '').replace(/(((limit|offset) [0-9])|order by ).*/i, '').trim();
   }
 
-  get soqlGroups() {
+  @api get soqlGroups() {
     return /SELECT (?<fields>.+?) FROM (?<sObjectName>[a-z0-9_]+)(?<conditions>.*)?/i.exec(this.soql)?.groups;
   }
 

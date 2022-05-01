@@ -1,5 +1,5 @@
 import {getCell} from "./getCell";
-import {flattenObject} from "./utils";
+import {flattenObject} from "c/utils";
 
 /**
  * Manipulates the row values before rendering it into the datatable.
