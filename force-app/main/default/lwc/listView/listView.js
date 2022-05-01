@@ -138,6 +138,18 @@ export default class ListView extends NavigationMixin(LightningElement) {
   }
 
   /**
+   * Refreshes both the data and the count.
+   */
+  @api refresh() {
+    this.isLoading = true;
+
+    Promise.all([this.getData(), this.getDataCount()])
+      .catch((e) => this.error = e)
+      .finally(() => this.isLoading = false)
+    ;
+  }
+
+  /**
    * When a button is clicked in a row, handle the event.
    *
    * @param event

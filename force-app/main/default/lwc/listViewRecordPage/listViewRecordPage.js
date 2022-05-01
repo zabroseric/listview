@@ -46,7 +46,7 @@ export default class ListViewRecordPage extends LightningElement {
 
     const messageCallback = (event) => {
       if (event.data.payload.CreatedById === userId) {
-        this.template.querySelector('c-list-view').refreshData();
+        this.template.querySelector('c-list-view').refresh();
       }
     }
     console.debug(`Subscribing to: ${sObjectChangeEvent}`);
