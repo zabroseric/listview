@@ -27,6 +27,20 @@ public with sharing class ListViewController {
   }
 
   /**
+   * Get the case-sensitive name for an object.
+   * This is useful when this is required, for example: subscribing to change events.
+   *
+   * @param sObjectName
+   *
+   * @return
+   */
+  @AuraEnabled
+  public static String getSObjectName(String sObjectName)
+  {
+    return Schema.getGlobalDescribe().get(sObjectName).getDescribe().getName();
+  }
+
+  /**
    * Returns a list of serialized fields definitions based on the DescribeFieldResult class.
    * The list is restricted based on the fields provided, and is able to transverse unlimited relationship fields.
    *
