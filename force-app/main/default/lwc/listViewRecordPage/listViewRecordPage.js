@@ -34,6 +34,9 @@ export default class ListViewRecordPage extends LightningElement {
     return (this.soql || '').replace(/'?:?recordid'?/gi, `'${this.recordId}'`);
   }
 
+  /**
+   * Subscribe to events after the list-view component has rendered and can analyse the SOQL provided.
+   */
   renderedCallback() {
     if (!this.hasRendered) {
       this.onSubscribe().catch((e) => console.error(e));
@@ -41,6 +44,12 @@ export default class ListViewRecordPage extends LightningElement {
     }
   }
 
+  /**
+   * Subscribe to the data capture event and refresh the list view if a change is detected
+   * from the current user.
+   *
+   * @returns {Promise<void>}
+   */
   async onSubscribe() {
     const sObjectChangeEvent = await this.getsObjectChangeEvent();
 
@@ -53,6 +62,11 @@ export default class ListViewRecordPage extends LightningElement {
     subscribe(sObjectChangeEvent, -1, messageCallback).catch((e) => console.error(e));
   }
 
+  /**
+   * Get the event object that should be subscribed to, based on the SOQL provided.
+   *
+   * @returns {Promise<string>}
+   */
   async getsObjectChangeEvent() {
     const sObjectName = await getSObjectName({sObjectName: this.template.querySelector('c-list-view').sObjectName});
     return !sObjectName.includes('__c') ? `/data/${sObjectName}ChangeEvent` : `/data/${sObjectName}__ChangeEvent`;
