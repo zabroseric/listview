@@ -15,7 +15,6 @@ export const nameFields = [
 // A list of all field names that should be replaced.
 export const fieldLabelsReplace = {
   'Full Name': 'Contact Name',
-  'Owner ID': 'Owner',
 };
 
 // SOQL sorting is not supported for these data types.

@@ -66,7 +66,7 @@ public with sharing class ListViewController {
         continue;
       }
 
-      fieldDefinitions.put(fieldDescribe.getName().toLowerCase(), JSON.deserializeUntyped(JSON.serialize(fieldDescribe)));
+      fieldDefinitions.put(fieldNamePrimary.replaceAll('__r$', '__c'), JSON.deserializeUntyped(JSON.serialize(fieldDescribe)));
 
       // Recursively call this method to get the nested relationship.
       if (fieldDescribe.getRelationshipName() != null && !fieldDescribe.getReferenceTo().isEmpty() && fieldName.contains('.')) {

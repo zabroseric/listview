@@ -47,7 +47,7 @@ const getColumn = (metaData, options) => {
       type: 'button',
       label: replaceFieldLabel(metaDataRelationship.label),
       typeAttributes: {
-        fieldName: {fieldName: 'id'},
+        fieldName: {fieldName: metaDataRelationship.name.toLowerCase() !== 'name' ? metaDataRelationship.name.toLowerCase() : 'id'},
         label: {fieldName: options.fieldName},
         variant: 'base',
         type: 'button',
@@ -138,6 +138,6 @@ const isColumnHide = (metaData) => /(hidden)/i.exec(metaData.label) !== null;
 const getHyperlinkStaticLabel = (value) => /hyperlink\([^,]+,\s*"(?<label>[^"]+)"/i.exec(value)?.groups?.label;
 const getButtonVariant = (value) => /button-(?<variant>.+)/.exec(value)?.groups?.variant;
 
-export const replaceFieldLabel = (fieldLabel) => fieldLabel in fieldLabelsReplace ? fieldLabelsReplace[fieldLabel] : fieldLabel;
+export const replaceFieldLabel = (fieldLabel) => ((fieldLabel in fieldLabelsReplace ? fieldLabelsReplace[fieldLabel] : fieldLabel) || '').replace(/ ID$/, ' Name');
 
 export default getColumn;
