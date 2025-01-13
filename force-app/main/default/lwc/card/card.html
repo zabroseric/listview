@@ -1,27 +1,41 @@
-<!-- Card Heading -->
+<!-- Card -->
 <template>
-  <div
-    class="slds-page-header slds-page-header_joined slds-page-header_bleed slds-shrink-none test-headerRegion slds-is-relative slds-page-header_object-home">
-    <div class="slds-grid">
-      <div class="slds-col slds-has-flexi-truncate">
-        <div class="slds-media slds-no-space slds-grow">
-          <lightning-icon class="slds-m-right_small" icon-name={iconName} if:true={iconName}
-                          size="small"></lightning-icon>
-          <div class="slds-media__body slds-align-middle">
-            <h2 class="slds-card__header-title">
-              <span class="slds-truncate slds-m-right_xx-small">{title}</span>
-              <span if:true={hasTitleCount}>({titleCount})</span>
-            </h2>
+  <div class="slds-card slds-card_boundary">
+    <div
+        class="slds-page-header slds-page-header_joined slds-page-header_bleed slds-shrink-none test-headerRegion slds-is-relative slds-page-header_object-home">
+      <div class="slds-grid">
+        <div class="slds-col slds-has-flexi-truncate">
+          <div class="slds-media slds-no-space slds-grow">
+            <lightning-icon class="slds-m-right_small" icon-name={iconName} if:true={iconName}
+                            size="small"></lightning-icon>
+            <div class="slds-media__body slds-align-middle">
+              <h2 class="slds-card__header-title">
+                <span class="slds-truncate slds-m-right_xx-small">{title}</span>
+                <span if:true={hasTitleCount}>({titleCount})</span>
+              </h2>
+            </div>
           </div>
         </div>
+        <slot name="actions"></slot>
       </div>
-      <slot name="actions"></slot>
+      <div class="slds-grid" if:true={subTitle}>
+        <div class="slds-col slds-align-bottom">
+          <p class="slds-text-body_small">
+            {subTitle}
+          </p>
+        </div>
+      </div>
     </div>
-    <div class="slds-grid" if:true={subTitle}>
-      <div class="slds-col slds-align-bottom">
-        <p class="slds-text-body_small">
-          {subTitle}
-        </p>
+    <div class="slds-border_bottom slds-color__border_gray-6"></div>
+    <div class="content">
+      <div class="alert-container" if:true={error}>
+        <c-alert variant="error">
+          {error}
+        </c-alert>
+      </div>
+      <slot name="content"></slot>
+      <div class="spinner-container" if:true={isLoading}>
+        <lightning-spinner alternative-text="Loading" size="medium" variant="brand"></lightning-spinner>
       </div>
     </div>
   </div>

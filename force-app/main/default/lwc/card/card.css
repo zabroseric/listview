@@ -1,0 +1,19 @@
+.slds-card {
+    overflow: hidden;
+}
+
+.content {
+    position: relative;
+}
+
+.alert-container {
+    margin-bottom: -2px;
+}
+
+.spinner-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: -32px;
+}

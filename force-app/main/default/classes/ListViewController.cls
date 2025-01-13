@@ -10,7 +10,7 @@ public with sharing class ListViewController {
   @AuraEnabled
   public static Integer getSObjectCount(String soql)
   {
-    return (Integer) Database.query(soql)[0].get('expr0');
+    return (Integer) Database.query(soql + ' WITH USER_MODE')[0].get('expr0');
   }
 
   /**

@@ -9,10 +9,13 @@
         <members>listView</members>
         <members>listViewRecordPage</members>
         <members>alert</members>
-        <members>cardHeading</members>
         <members>listViewCommunityPage</members>
         <members>utils</members>
+        <members>listViewDataQuery</members>
+        <members>card</members>
+        <members>datatable</members>
+        <members>datatableButton</members>
         <name>LightningComponentBundle</name>
     </types>
-    <version>54.0</version>
+    <version>62.0</version>
 </Package>
