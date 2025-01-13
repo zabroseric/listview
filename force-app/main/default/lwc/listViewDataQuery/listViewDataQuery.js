@@ -36,8 +36,8 @@ export default class ListViewDataQuery extends LightningElement {
   _soql;
 
   // Presentation of information.
-  _title;
-  _subTitle;
+  @api title;
+  @api subTitle;
   _icon;
   _pageSize;
   _showRowNumber;
@@ -369,40 +369,6 @@ export default class ListViewDataQuery extends LightningElement {
     General Getters and Setters
    ----------------------------------------------- */
   /**
-   * If the data is empty, and we're not still loading.
-   *
-   * @returns {boolean}
-   */
-  get isDataEmpty() {
-    return !this.isLoading && this.dataTotalCount === 0;
-  }
-
-  /**
-   * Shows the no records message to the user.
-   */
-  get showDataEmpty() {
-    return !this.error && this.isDataEmpty;
-  }
-
-  /**
-   * Show the table if the data isn't empty, and there are no errors.
-   *
-   * @returns {boolean}
-   */
-  get showTable() {
-    return !this.error && !this.isDataEmpty;
-  }
-
-  /**
-   * Show the placeholder padding if we haven't retrieved data for the first time.
-   *
-   * @returns {boolean}
-   */
-  get showPlaceholder() {
-    return this.isLoading && this.dataTotalCount === undefined;
-  }
-
-  /**
    * Gets a list of fields that have been filtered to only those
    * that are valid on the object itself.
    *
@@ -515,7 +481,10 @@ export default class ListViewDataQuery extends LightningElement {
     console.debug(value);
   }
 
-  onDownloadClick() {
+  /**
+   * Create a CSV download from the data that's currently displayed on the table.
+   */
+  onDownload() {
     const csv = getCSV(this.data, this.columns);
     this.debug = csv;
 
@@ -626,28 +595,6 @@ export default class ListViewDataQuery extends LightningElement {
 
   @api set soql(value) {
     this._soql = value;
-  }
-
-  get title() {
-    return this._title || '';
-  }
-
-  @api set title(value) {
-    this._title = value;
-  }
-
-  get subTitle() {
-    if (this._subTitle && this.dataTotalCount === 1) {
-      return `1 item • ${this._subTitle}`;
-    }
-    if (this._subTitle) {
-      return `${this.dataTotalCount ?? 0} items • ${this._subTitle}`;
-    }
-    return this._subTitle || '';
-  }
-
-  @api set subTitle(value) {
-    this._subTitle = value;
   }
 
   /**
