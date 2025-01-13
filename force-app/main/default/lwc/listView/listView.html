@@ -1,13 +1,52 @@
 <!-- List View -->
 <template>
   <div class="slds-card slds-card_boundary">
-    <c-card-heading
-      icon-name={icon}
-      sub-title={subTitle}
-      title={title}
-      title-count={dataTotalCount}>
-      <slot name="buttons" slot="buttons"></slot>
-    </c-card-heading>
+    <c-card
+        icon-name={icon}
+        sub-title={subTitle}
+        title={title}
+        title-count={dataTotalCount}>
+      <div slot="actions" class="actions-grid slds-col slds-no-flex slds-grid slds-align-bottom">
+        <div lwc:if={enableSearch}>
+          <div class="slds-form-element__control slds-grow slds-input-has-icon slds-input-has-icon_left-right">
+            <input
+                class="slds-input"
+                type="search"
+                placeholder="Search this list..."
+                onkeyup={onSearch}
+            >
+            <lightning-icon
+                class="slds-input__icon slds-input__icon_left slds-icon-text-default"
+                icon-name="utility:search"
+                alternative-text="Search"
+                title="Search"
+                size="xx-small"
+            >
+            </lightning-icon>
+          </div>
+        </div>
+        <div lwc:if={enableDownload}>
+          <lightning-button
+              label="Download"
+              title="Download"
+              icon-name="utility:download"
+              onclick={onDownloadClick}
+          >
+          </lightning-button>
+        </div>
+        <div lwc:if={enableRefresh}>
+          <lightning-button-icon
+              icon-name="utility:refresh"
+              variant="border-filled"
+              alternative-text="Refresh"
+              title="Refresh"
+              onclick={refresh}
+          >
+          </lightning-button-icon>
+        </div>
+        <slot name="actions"></slot>
+      </div>
+    </c-card>
     <div class="slds-border_bottom slds-color__border_gray-6"></div>
     <div class="alert-container" if:true={_error}>
       <c-alert variant="error">
@@ -15,24 +54,23 @@
       </c-alert>
     </div>
     <div class="datatable-container" style={dataTableStyle}>
-      <lightning-datatable
-        columns={columns}
-        data={data}
-        draft-values={draftValues}
-        enable-infinite-loading={infiniteScrolling}
-        hide-checkbox-column
-        if:true={showTable}
-        key-field="id"
-        onloadmore={onLoadMore}
-        onrowaction={onRowAction}
-        onsave={onSave}
-        onsort={onSort}
-        show-row-number-column={showRowNumber}
-        sorted-by={sortBy}
-        sorted-direction={sortDirection}
-        errors={fieldErrors}
+      <c-datatable
+          columns={columns}
+          data={data}
+          draft-values={draftValues}
+          enable-infinite-loading={infiniteScrolling}
+          hide-checkbox-column
+          if:true={showTable}
+          key-field="id"
+          onloadmore={onLoadMore}
+          onsave={onSave}
+          onsort={onSort}
+          show-row-number-column={showRowNumber}
+          sorted-by={sortBy}
+          sorted-direction={sortDirection}
+          errors={fieldErrors}
       >
-      </lightning-datatable>
+      </c-datatable>
       <div class="datatable-sidebar" if:true={showTable}></div>
       <div class="datatable-placeholder" if:true={showPlaceholder}></div>
       <div class="spinner-container" if:true={isLoading}>
@@ -44,31 +82,31 @@
     </div>
     <div class="slds-card__footer footer-container" if:true={showPages}>
       <lightning-button
-        disabled={isPagePreviousDisabled}
-        icon-name="utility:chevronleft"
-        label="Previous"
-        onclick={onPagePrevious}
-        variant="brand-outline"
+          disabled={isPagePreviousDisabled}
+          icon-name="utility:chevronleft"
+          label="Previous"
+          onclick={onPagePrevious}
+          variant="brand-outline"
       >
       </lightning-button>
       <div class="slds-m-horizontal_small">
         Showing Page {page} of {pageLast}
       </div>
       <lightning-button
-        disabled={isViewAllDisabled}
-        label="View All"
-        onclick={onViewAll}
-        variant="brand-outline"
+          disabled={isViewAllDisabled}
+          label="View All"
+          onclick={onViewAll}
+          variant="brand-outline"
       >
       </lightning-button>
       <lightning-button
-        class="slds-m-left_x-small"
-        disabled={isPageNextDisabled}
-        icon-name="utility:chevronright"
-        icon-position="right"
-        label="Next"
-        onclick={onPageNext}
-        variant="brand-outline"
+          class="slds-m-left_x-small"
+          disabled={isPageNextDisabled}
+          icon-name="utility:chevronright"
+          icon-position="right"
+          label="Next"
+          onclick={onPageNext}
+          variant="brand-outline"
       >
       </lightning-button>
     </div>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>54.0</apiVersion>
+    <apiVersion>62.0</apiVersion>
     <description>An enhanced version of the Salesforce List View and Related List for community pages.</description>
     <isExposed>true</isExposed>
     <masterLabel>List View Community Page</masterLabel>
@@ -21,6 +21,10 @@
                       datasource="button-base,button-neutral,button-brand,button-brand-outline,button-destructive,button-destructive-text,button-inverse,button-success"/>
             <property name="showRowNumber" label="Show Row Number" type="Boolean" default="false"/>
             <property name="infiniteScrolling" label="Infinite Scrolling" type="Boolean" default="false"/>
+            <property name="enableSearch" label="Enable Search" type="Boolean" default="false"/>
+            <property name="enableRefresh" label="Enable Refresh" type="Boolean" default="false"/>
+            <property name="enableDownload" label="Enable Download" type="Boolean" default="false"/>
+            <property name="hyperlinkNames" label="Hyperlink Names" type="Boolean" default="true"/>
             <property name="bypassAccess" label="Bypass Access (Phase 2)" type="Boolean"/>
         </targetConfig>
     </targetConfigs>

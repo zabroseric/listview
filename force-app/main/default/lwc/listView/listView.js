@@ -1,30 +1,36 @@
 import {api, LightningElement} from 'lwc';
 import getSObjectsApex from '@salesforce/apex/ListViewController.getSObjects'
+import getSearchSObjectsApex from '@salesforce/apex/ListViewController.getSearchSObjects'
 import getSObjectCountApex from '@salesforce/apex/ListViewController.getSObjectCount'
+import getSearchSObjectCountApex from '@salesforce/apex/ListViewController.getSearchSObjectCount'
 import getSObjectFieldsApex from '@salesforce/apex/ListViewController.getSObjectFields'
-import {NavigationMixin} from "lightning/navigation";
 import getColumn from './getColumn';
 import getRow from "./getRow";
-import {flattenObject, getId, logApexFunc, titleCase, toBoolean} from "c/utils";
+import {flattenObject, logApexFunc, titleCase, toBoolean} from "c/utils";
 import {
   errorMessageGeneric,
   infiniteScrollHeightDefault,
   nameFields,
   pageSizeDefault,
   pageSizeMax,
+  searchTimerDelay,
   sortByDefault,
-  sortDirectionDefault
+  sortDirectionDefault,
+  soslMaxRowCount
 } from "./constants";
 import {updateRecord as updateRecordApex} from "lightning/uiRecordApi";
 import {ShowToastEvent} from "lightning/platformShowToastEvent";
+import getCSV from "./getCSV";
 
 // Wrap the apex functions using a decorative pattern for logging.
 const getSObjects = logApexFunc('getSObjects', getSObjectsApex);
+const getSearchSObjects = logApexFunc('searchSObjects', getSearchSObjectsApex);
 const getSObjectCount = logApexFunc('getSObjectCount', getSObjectCountApex);
+const getSearchSObjectCount = logApexFunc('searchSObjectCount', getSearchSObjectCountApex);
 const getSObjectFields = logApexFunc('getSObjectFields', getSObjectFieldsApex);
 const updateRecord = logApexFunc('updateRecord', updateRecordApex, true);
 
-export default class ListView extends NavigationMixin(LightningElement) {
+export default class ListView extends LightningElement {
 
   // Controls the information that is queried and presented.
   _soql;
@@ -39,6 +45,10 @@ export default class ListView extends NavigationMixin(LightningElement) {
   _infiniteScrollingAdditionalRows;
   _infiniteScrollingHeight;
   _urlType;
+  _enableSearch;
+  _enableRefresh;
+  _enableDownload;
+  _hyperlinkNames;
 
   // Editing of information.
   _editFields;
@@ -53,6 +63,8 @@ export default class ListView extends NavigationMixin(LightningElement) {
   isLoading = true;
   draftValues;
   fieldErrors;
+  _searchTerm;
+  searchTimer;
 
   columns = [];
   data = [];
@@ -65,7 +77,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
     try {
       // Validate the SOQL before continuing.
       if (this.soqlGroups === undefined) {
-        throw(`Error detecting the sobject name and relevant fields, expected format "SELECT % FROM %", "${this.soql}" received.`);
+        throw (`Error detecting the sobject name and relevant fields, expected format "SELECT % FROM %", "${this.soql}" received.`);
       }
 
       await this.getMetaData();
@@ -83,10 +95,21 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @returns {Promise<void>}
    */
   async getData() {
-    this.data = this.logTable = (await getSObjects({
-      soql: `SELECT ${this.fieldsValid.join(', ')} FROM ${titleCase(this.sObjectName)} ${this.whereClause}`.trim() + ' '
-        + `ORDER BY ${this.sortBy} ${this.sortDirection.toUpperCase()} LIMIT ${this.pageSize} OFFSET ${this.dataOffset}`.trim()
-    })).map((row) => getRow(row, this.columns));
+    // The minimum length for a search term is 2 characters.
+    if (this.searchTerm.length > 1) {
+      this.data = this.logTable = (await getSearchSObjects({
+        sosl: `FIND '${this.searchTerm}' IN ALL FIELDS RETURNING ${titleCase(this.sObjectName)}`
+          + `(`
+          + `${this.fieldsValid.join(', ')} ${this.whereClause}`.trim() + ' '
+          + `ORDER BY ${this.sortBy} ${this.sortDirection.toUpperCase()} LIMIT ${this.pageSize} OFFSET ${this.dataOffset}`.trim()
+          + `)`
+      })).map((row) => getRow(row, this.columns));
+    } else {
+      this.data = this.logTable = (await getSObjects({
+        soql: `SELECT ${this.fieldsValid.join(', ')} FROM ${titleCase(this.sObjectName)} ${this.whereClause}`.trim() + ' '
+          + `ORDER BY ${this.sortBy} ${this.sortDirection.toUpperCase()} LIMIT ${this.pageSize} OFFSET ${this.dataOffset}`.trim()
+      })).map((row) => getRow(row, this.columns));
+    }
   }
 
   /**
@@ -95,9 +118,17 @@ export default class ListView extends NavigationMixin(LightningElement) {
    * @returns {Promise<void>}
    */
   async getDataCount() {
-    this.dataTotalCount = await getSObjectCount({
-      soql: `SELECT COUNT(Id) FROM ${titleCase(this.sObjectName)} ${this.whereClause}`.trim()
-    });
+    // The minimum length for a search term is 2 characters.
+    if (this.searchTerm.length > 1) {
+      this.dataTotalCount = (await getSearchSObjectCount({
+        sosl: `FIND '${this.searchTerm}' IN ALL FIELDS RETURNING ${titleCase(this.sObjectName)}`
+          + `(${this.fieldsValid.join(', ').trim()} ${this.whereClause.trim()} LIMIT ${soslMaxRowCount})`
+      }));
+    } else {
+      this.dataTotalCount = await getSObjectCount({
+        soql: `SELECT COUNT(Id) FROM ${titleCase(this.sObjectName)} ${this.whereClause}`.trim()
+      });
+    }
   }
 
   /**
@@ -116,11 +147,16 @@ export default class ListView extends NavigationMixin(LightningElement) {
     this.columns = this.debug = this.fields
       .map((field) => field.toLowerCase()) // Convert to lowercase.
       .map((field) => dataMeta[field]) // Get the respective metadata.
-      .map((metaData, index) => getColumn(metaData, { // Generate the columns and pass options.
+      .map((metaData, index) => getColumn(metaData, {
+        // Generate the columns and pass options.
         urlType: this.urlType,
         fieldName: this.fields[index],
         editFieldsList: this.editFieldsList,
-        metaDataRelationship: dataMeta[fieldRelationshipIds[this.fields[index]]],
+        hyperlinkNames: this.hyperlinkNames,
+        metaDataRelationship: {
+          ...dataMeta[fieldRelationshipIds[this.fields[index]]],
+          reference: fieldRelationshipIds[this.fields[index]]
+        },
       }))
     ;
   }
@@ -132,6 +168,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
     this.isLoading = true;
 
     this.getData()
+      .then(() => this.clearError())
       .catch((e) => this.error = e)
       .finally(() => this.isLoading = false)
     ;
@@ -144,24 +181,24 @@ export default class ListView extends NavigationMixin(LightningElement) {
     this.isLoading = true;
 
     Promise.all([this.getData(), this.getDataCount()])
+      .then(() => this.clearError())
       .catch((e) => this.error = e)
       .finally(() => this.isLoading = false)
     ;
   }
 
   /**
-   * When a button is clicked in a row, handle the event.
+   * Enters a search term that is then used in the SOQL query.
    *
    * @param event
    */
-  onRowAction(event) {
-    const action = event.detail.action;
-    const row = event.detail.row;
+  onSearch(event) {
+    window.clearTimeout(this.searchTimer);
 
-    // Get the url from a referenced field, or current cell value.
-    if (action?.type === 'button') {
-      this.navigateUrl(row[action?.fieldName?.fieldName] ?? row[action?.fieldName]);
-    }
+    this.searchTerm = event.target.value;
+    this.searchTimer = setTimeout(() => {
+      this.refresh();
+    }, searchTimerDelay);
   }
 
   /**
@@ -218,7 +255,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
     // Convert fields from lower case to their proper case.
     const recordInputs = event.detail.draftValues.slice().map(fields => ({
       fields: {
-        ...Object.fromEntries(Object.entries(fields).map(([key, val]) => ([this.dataMeta[key].name, val]))),
+        ...Object.fromEntries(Object.entries(fields).map(([key, val]) => ([this.dataMeta[key]?.name, val]))),
       }
     }));
 
@@ -295,28 +332,6 @@ export default class ListView extends NavigationMixin(LightningElement) {
   }
 
   /**
-   * Navigate the user to a specific URL.
-   */
-  navigateUrl(url) {
-    let urlConfig;
-
-    if (getId(url)) {
-      urlConfig = {
-        type: 'standard__recordPage',
-        attributes: {recordId: getId(url), actionName: 'view',},
-      }
-    } else {
-      urlConfig = {
-        type: 'standard__webPage',
-        attributes: {url: url}
-      };
-    }
-
-    console.debug('Redirecting with parameters', urlConfig);
-    this[NavigationMixin.Navigate](urlConfig);
-  }
-
-  /**
    * When infinite scrolling is enabled, the page size is increased is added to
    * based on the original page size.
    *
@@ -336,6 +351,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
     this.pageSize += this.infiniteScrollingAdditionalRows;
 
     this.getData()
+      .then(() => this.clearError())
       .catch((e) => this.error = e)
       .finally(() => target.isLoading = false)
     ;
@@ -426,7 +442,7 @@ export default class ListView extends NavigationMixin(LightningElement) {
   get fieldRelationshipIds() {
     return Object.assign({}, ...this.fields
       .filter((fieldName) => nameFields.includes(fieldName.replace(/.+\.([^.]+)$/, '$1')))
-      .map((fieldName) => ({[fieldName]: fieldName.replace(/\.[^.]+$/, '').replace(/__r$/, '__c')}))
+      .map((fieldName) => ({[fieldName]: fieldName.replace(/\.[^.]+$/, '').replace(/__r$/, '__r.id')}))
     );
   }
 
@@ -510,6 +526,18 @@ export default class ListView extends NavigationMixin(LightningElement) {
     console.debug(value);
   }
 
+  onDownloadClick() {
+    const csv = getCSV(this.data, this.columns);
+    this.debug = csv;
+
+    const downloadElement = document.createElement('a');
+    downloadElement.href = encodeURI(`data:text/csv;charset=utf-8,${csv}`);
+    downloadElement.target = '_self';
+    downloadElement.download = `${this.title}.csv`;
+    document.body.appendChild(downloadElement);
+    downloadElement.click();
+  }
+
   /**
    * As an alternative to a class variable decorator, we can log a table value
    * directly by setting the output to be the logTable class variable.
@@ -559,6 +587,13 @@ export default class ListView extends NavigationMixin(LightningElement) {
       this._error = (this._error ? '' : '\n') + value;
     }
     console.error(value);
+  }
+
+  /**
+   * Provides the ability to clear an error once the error conditions have been resolved.
+   */
+  @api clearError() {
+    this._error = undefined;
   }
 
   /**
@@ -621,6 +656,12 @@ export default class ListView extends NavigationMixin(LightningElement) {
   }
 
   get subTitle() {
+    if (this._subTitle && this.dataTotalCount === 1) {
+      return `1 item • ${this._subTitle}`;
+    }
+    if (this._subTitle) {
+      return `${this.dataTotalCount ?? 0} items • ${this._subTitle}`;
+    }
     return this._subTitle || '';
   }
 
@@ -705,6 +746,30 @@ export default class ListView extends NavigationMixin(LightningElement) {
     this._urlType = value;
   }
 
+  get enableSearch() {
+    return toBoolean(this._enableSearch);
+  }
+
+  @api set enableSearch(value) {
+    this._enableSearch = value;
+  }
+
+  get enableRefresh() {
+    return toBoolean(this._enableRefresh);
+  }
+
+  @api set enableRefresh(value) {
+    this._enableRefresh = value;
+  }
+
+  get enableDownload() {
+    return toBoolean(this._enableDownload);
+  }
+
+  @api set enableDownload(value) {
+    this._enableDownload = value;
+  }
+
   get editFields() {
     return this._editFields;
   }
@@ -720,11 +785,29 @@ export default class ListView extends NavigationMixin(LightningElement) {
     this._editFields = value;
   }
 
+  get searchTerm() {
+    return (this._searchTerm || '')
+      .replace('\'', '\\\'')
+      ;
+  }
+
+  @api set searchTerm(value) {
+    this._searchTerm = value;
+  }
+
   get bypassAccess() {
     return this._bypassAccess;
   }
 
   @api set bypassAccess(value) {
+    this._bypassAccess = value;
+  }
+
+  get hyperlinkNames() {
+    return toBoolean(this._bypassAccess);
+  }
+
+  @api set hyperlinkNames(value) {
     this._bypassAccess = value;
   }
 }

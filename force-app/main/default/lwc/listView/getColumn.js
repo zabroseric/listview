@@ -1,9 +1,10 @@
 import {mergeOptions} from "c/utils";
-import {dataTypes, dataTypesNoSort, fieldLabelsReplace, nameFields} from "./constants";
+import {dataTypes, dataTypesNoSort, fieldLabelsReplace} from "./constants";
 
 const optionDefaults = {
   urlType: 'button-base',
   fieldName: undefined, // Original field name provided (useful if the column is invalid).
+  hyperlinkNames: true,
   editFieldsList: [],
   metaDataRelationship: undefined,
 };
@@ -27,8 +28,7 @@ const getColumn = (metaData, options) => {
     }
   }
 
-  const formula = metaData.calculatedFormula;
-  const {urlType, editFieldsList, metaDataRelationship} = mergeOptions(optionDefaults, options);
+  const {urlType, hyperlinkNames, editFieldsList, metaDataRelationship} = mergeOptions(optionDefaults, options);
 
   // Base definition.
   const columnBase = {
@@ -40,17 +40,15 @@ const getColumn = (metaData, options) => {
     editable: editFieldsList.includes(options.fieldName)
   };
 
-  // If we have an id, show the name and hyperlink it.
-  if (metaDataRelationship && metaDataRelationship?.label) {
+  // If we have the name hyperlink it.
+  if (hyperlinkNames && metaDataRelationship && metaDataRelationship?.label) {
     return {
       ...columnBase,
-      type: 'button',
-      label: replaceFieldLabel(metaDataRelationship.label),
+      type: 'customButton',
       typeAttributes: {
-        fieldName: {fieldName: metaDataRelationship.name.toLowerCase() !== 'name' ? metaDataRelationship.name.toLowerCase() : 'id'},
+        url: {fieldName: metaDataRelationship.name.toLowerCase() !== 'name' ? metaDataRelationship.reference.toLowerCase() : 'id'},
         label: {fieldName: options.fieldName},
-        variant: 'base',
-        type: 'button',
+        variant: 'base'
       }
     };
   }
@@ -64,14 +62,12 @@ const getColumn = (metaData, options) => {
   if (isHyperlinkFormula(metaData)) {
     return {
       ...columnBase,
-      type: 'button',
+      type: 'customButton',
       cellAttributes: {alignment: getButtonVariant(urlType) === 'base' ? 'left' : 'center'},
       typeAttributes: {
-        label: getHyperlinkStaticLabel(formula) ? getHyperlinkStaticLabel(formula) : {fieldName: `${columnBase.fieldName}-label`},
-        variant: getButtonVariant(urlType),
-        fieldName: metaData.name.toLowerCase(),
-        type: 'button',
-        sortable: false,
+        url: {fieldName: metaData.name.toLowerCase() },
+        label: {fieldName: `${columnBase.fieldName}-label`},
+        variant: getButtonVariant(urlType)
       }
     };
   }
@@ -134,8 +130,6 @@ const getColumn = (metaData, options) => {
 
 const isHyperlinkFormula = (metaData) => /hyperlink/i.exec(metaData.calculatedFormula || '') !== null;
 const isColumnHide = (metaData) => /(hidden)/i.exec(metaData.label) !== null;
-
-const getHyperlinkStaticLabel = (value) => /hyperlink\([^,]+,\s*"(?<label>[^"]+)"/i.exec(value)?.groups?.label;
 const getButtonVariant = (value) => /button-(?<variant>.+)/.exec(value)?.groups?.variant;
 
 export const replaceFieldLabel = (fieldLabel) => ((fieldLabel in fieldLabelsReplace ? fieldLabelsReplace[fieldLabel] : fieldLabel) || '').replace(/ ID$/, ' Name');

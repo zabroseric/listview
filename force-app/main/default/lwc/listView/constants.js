@@ -4,6 +4,8 @@ export const pageSizeDefault = 200;
 export const sortByDefault = 'id';
 export const sortDirectionDefault = 'asc';
 export const infiniteScrollHeightDefault = 500;
+export const searchTimerDelay = 300;
+export const soslMaxRowCount = 2000;
 
 // A list of special fields that should provide a link to the record id.
 export const nameFields = [

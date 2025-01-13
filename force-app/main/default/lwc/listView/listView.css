@@ -1,3 +1,7 @@
+.actions-grid {
+  gap: 0.5rem;
+}
+
 .slds-card {
   overflow: hidden;
 }

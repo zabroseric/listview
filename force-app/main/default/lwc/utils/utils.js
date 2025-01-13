@@ -85,7 +85,7 @@ export const toBoolean = (obj) => {
  * @param value
  * @returns {string | undefined}
  */
-export const getId = (value) => /^(?<id>[a-z0-9]{18}|[a-z0-9]{15})$/i.exec(value)?.groups?.id;
+export const getId = (value) => /^\W*(?<id>[a-z0-9]{18}|[a-z0-9]{15})\W*$/i.exec(value)?.groups?.id;
 
 /**
  * Flattens an object and combined the keys by delimiting them by a dot.

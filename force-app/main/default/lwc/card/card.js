@@ -1,6 +1,6 @@
 import {api, LightningElement} from 'lwc';
 
-export default class CardHeading extends LightningElement {
+export default class Card extends LightningElement {
 
   @api title;
   @api titleCount;

@@ -15,13 +15,9 @@
           </div>
         </div>
       </div>
-      <div>
-        <div class="slds-col slds-no-flex slds-grid slds-align-bottom">
-          <slot name="buttons"></slot>
-        </div>
-      </div>
+      <slot name="actions"></slot>
     </div>
-    <div class="slds-grid slds-m-top_x-small" if:true={subTitle}>
+    <div class="slds-grid" if:true={subTitle}>
       <div class="slds-col slds-align-bottom">
         <p class="slds-text-body_small">
           {subTitle}

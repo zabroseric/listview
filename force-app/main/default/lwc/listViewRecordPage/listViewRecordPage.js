@@ -1,8 +1,9 @@
-import {api, LightningElement} from 'lwc';
+import {api, LightningElement, wire} from 'lwc';
 import getSObjectNameApex from '@salesforce/apex/ListViewController.getSObjectName'
 import {logApexFunc} from "c/utils";
 import {subscribe} from 'lightning/empApi';
 import userId from "@salesforce/user/Id";
+import {getRecord} from "lightning/uiRecordApi";
 
 // Wrap the apex functions using a decorative pattern for logging.
 const getSObjectName = logApexFunc('getSObjectName', getSObjectNameApex);
@@ -19,10 +20,66 @@ export default class ListViewRecordPage extends LightningElement {
   @api urlType;
   @api editFields;
   @api bypassAccess;
+  @api enableSearch;
+  @api enableRefresh;
+  @api enableDownload;
+  @api hyperlinkNames;
 
   @api recordId;
 
   hasRendered = false;
+  hasLoadedFieldValues = false;
+  fieldValues = {};
+
+  /**
+   * Retrieve the record details based on any injectable fields we have provided in the SOQL.
+   *
+   * @param error
+   * @param data
+   */
+  @wire(getRecord, {recordId: "$recordId", fields: "$injectableFields"})
+  wiredRecord({error, data}) {
+    if (data) {
+      this.fieldValues = data.fields;
+
+      // If we load new fields from the record, ensure that we refresh the list view.
+      if (this.hasLoadedFieldValues) {
+        this.template.querySelector('c-list-view').soql = this.soqlModified;
+        this.template.querySelector('c-list-view').refresh();
+      }
+      this.hasLoadedFieldValues = true;
+    } else if (error) {
+      console.error(JSON.stringify(error));
+    }
+  }
+
+  /**
+   * Get fields we want to inject from the current SObject.
+   * This is provided using the :Field_Name notation in the SOQL.
+   *
+   * @returns {*|*[]}
+   */
+  get injectableFields() {
+    if (this.sObjectName === undefined) {
+      console.error('Unable to determine sObject name from the SOQL');
+      return [];
+    }
+
+    return this.soql
+      .match(/(?<=:)[a-z0-9_]+/gi)
+      ?.filter((field) => /recordid/i.exec(field) === null)
+      ?.map((field) => `${this.sObjectName}.${field}`) ?? []
+      ;
+  }
+
+  /**
+   * Get the sObject name from the SOQL provided.
+   *
+   * @returns {string | undefined}
+   */
+  get sObjectName() {
+    return /FROM (?<sObjectName>[a-z0-9_]+)?/i.exec(this.soql)?.groups?.sObjectName;
+  }
 
   /**
    * Modify the SOQL passed by injecting the record id, before passing it
@@ -31,7 +88,11 @@ export default class ListViewRecordPage extends LightningElement {
    * @returns {string}
    */
   get soqlModified() {
-    return (this.soql || '').replace(/'?:?recordid'?/gi, `'${this.recordId}'`);
+    return (this.soql || '')
+      .replace(/'%:?recordid%'?/gi, `'%${this.recordId}%'`)
+      .replace(/'?:?recordid'?/gi, `'${this.recordId}'`)
+      .replace(/:[a-z0-9_]+/gi, (field) => this.fieldValues[field.substring(1)]?.value ?? '<UNKNOWN>')
+      ;
   }
 
   /**

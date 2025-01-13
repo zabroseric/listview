@@ -1,6 +1,6 @@
 import {api, LightningElement} from 'lwc';
 
-export default class ListViewRecordPage extends LightningElement {
+export default class ListViewCommunityPage extends LightningElement {
 
   @api soql;
   @api title;
@@ -12,6 +12,10 @@ export default class ListViewRecordPage extends LightningElement {
   @api urlType;
   @api editFields;
   @api bypassAccess;
+  @api enableSearch;
+  @api enableRefresh;
+  @api enableDownload;
+  @api hyperlinkNames;
 
   @api recordId;
 
@@ -22,6 +26,9 @@ export default class ListViewRecordPage extends LightningElement {
    * @returns {string}
    */
   get soqlModified() {
-    return (this.soql || '').replace(/'?:?recordid'?/gi, `'${this.recordId}'`);
+    return (this.soql || '')
+      .replace(/'%:?recordid%'?/gi, `'%${this.recordId}%'`)
+      .replace(/'?:?recordid'?/gi, `'${this.recordId}'`)
+      ;
   }
 }

@@ -13,7 +13,7 @@ const getRow = (row, columns) => {
     rowReturn[fieldName] = getCell(value, getColumn(columns, fieldName) || {});
 
     // If we have a hyperlink, create an additional reference field for the label.
-    if (getHyperlinkLabel(rowFlat[fieldName])) {
+    if (getHyperlinkLabel(value)) {
       rowReturn[`${fieldName}-label`] = getHyperlinkLabel(value);
     }
     // If we have a latitude / longitude, split them out into two columns.

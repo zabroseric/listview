@@ -17,9 +17,15 @@ export const getCell = (value, column) => {
       return value / 100;
   }
 
-  // Get only the url for the hyperlink.
-  if (getUrlHref(value)) {
-    return addUrlProtocol(getUrlHref(value));
+  const hrefValue = getUrlHref(value);
+
+  // If we have a href and id, just return that.
+  if (hrefValue && getId(hrefValue)) {
+    return getId(hrefValue);
+  }
+  // Otherwise, add the protocol if it has been forgotten.
+  if (hrefValue) {
+    return addUrlProtocol(hrefValue);
   }
 
   // Turn the id into a hyperlink.
