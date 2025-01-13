@@ -51,7 +51,6 @@ export default class ListViewDataQuery extends LightningElement {
 
   // Editing of information.
   _editFields;
-  _bypassAccess;
 
   // Helper variables.
   _sortBy;
@@ -721,14 +720,6 @@ export default class ListViewDataQuery extends LightningElement {
 
   @api set searchTerm(value) {
     this._searchTerm = value;
-  }
-
-  get bypassAccess() {
-    return this._bypassAccess;
-  }
-
-  @api set bypassAccess(value) {
-    this._bypassAccess = value;
   }
 
   get hyperlinkNames() {

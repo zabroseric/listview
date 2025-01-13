@@ -25,7 +25,6 @@
             <property name="enableRefresh" label="Enable Refresh" type="Boolean" default="false"/>
             <property name="enableDownload" label="Enable Download" type="Boolean" default="false"/>
             <property name="hyperlinkNames" label="Hyperlink Names" type="Boolean" default="true"/>
-            <property name="bypassAccess" label="Bypass Access (Phase 2)" type="Boolean"/>
         </targetConfig>
     </targetConfigs>
 </LightningComponentBundle>

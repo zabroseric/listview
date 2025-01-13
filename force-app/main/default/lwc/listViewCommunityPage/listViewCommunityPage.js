@@ -11,7 +11,6 @@ export default class ListViewCommunityPage extends LightningElement {
   @api infiniteScrolling;
   @api urlType;
   @api editFields;
-  @api bypassAccess;
   @api enableSearch;
   @api enableRefresh;
   @api enableDownload;
