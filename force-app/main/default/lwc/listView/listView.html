@@ -1,12 +1,12 @@
 <!-- List View -->
 <template>
   <c-card
-      icon-name={icon}
-      sub-title={subTitle}
       title={title}
-      title-count={dataTotalCount}
+      sub-title={subTitle}
+      icon-name={icon}
+      title-count={valuesTotalCount}
       is-loading={isLoading}
-      error={_error}
+      error={error}
   >
     <div slot="actions" class="actions-grid slds-col slds-no-flex slds-grid slds-align-bottom">
       <div lwc:if={enableSearch}>
@@ -32,7 +32,7 @@
             label="Download"
             title="Download"
             icon-name="utility:download"
-            onclick={onDownloadClick}
+            onclick={onDownload}
         >
         </lightning-button>
       </div>
@@ -42,7 +42,7 @@
             variant="border-filled"
             alternative-text="Refresh"
             title="Refresh"
-            onclick={refresh}
+            onclick={onRefresh}
         >
         </lightning-button-icon>
       </div>
@@ -53,7 +53,7 @@
         <c-datatable
             if:true={showTable}
             columns={columns}
-            data={data}
+            data={values}
             draft-values={draftValues}
             enable-infinite-loading={infiniteScrolling}
             hide-checkbox-column
@@ -65,6 +65,7 @@
             sorted-by={sortBy}
             sorted-direction={sortDirection}
             errors={fieldErrors}
+            is-loading={isLoadingMore}
         >
         </c-datatable>
         <div class="datatable-sidebar" if:true={showTable}></div>
