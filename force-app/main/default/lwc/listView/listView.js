@@ -8,13 +8,12 @@ const SEARCH_DEBOUNCE_TIMEOUT = 500;
 export default class ListView extends LightningElement {
 
   // Exposed properties
-  @api isLoading;
-  @api columns;
-  @api draftValues;
-  @api sortBy;
-  @api sortDirection;
-  @api fieldErrors;
-  @api page;
+  _columns;
+  _draftValues;
+  _sortBy;
+  _sortDirection;
+  _fieldErrors;
+  _page;
   _title;
   _subTitle;
   _icon;
@@ -26,6 +25,7 @@ export default class ListView extends LightningElement {
   _enableDownload;
   _enableRefresh;
   _infiniteScrolling;
+  _isLoading;
   _error;
   _values;
   _valuesTotalCount;
@@ -95,7 +95,7 @@ export default class ListView extends LightningElement {
    * @returns {boolean}
    */
   get isDataEmpty() {
-    return !this.isLoading && this.valuesTotalCount === 0;
+    return !this._isLoading && this.valuesTotalCount === 0;
   }
 
   /**
@@ -120,7 +120,7 @@ export default class ListView extends LightningElement {
    * @returns {boolean}
    */
   get showPlaceholder() {
-    return this.isLoading && this.valuesTotalCount === undefined;
+    return this._isLoading && this.valuesTotalCount === undefined;
   }
 
   /**
@@ -201,21 +201,21 @@ export default class ListView extends LightningElement {
    * @returns {boolean}
    */
   get isViewAllDisabled() {
-    return this.pageSize >= this.pageSizeMax || this.isLoading;
+    return this.pageSize >= this.pageSizeMax || this._isLoading;
   }
 
   /**
    * @returns {boolean|*}
    */
   get isPagePreviousDisabled() {
-    return this.page <= 1 || this.isViewAllDisabled;
+    return this._page <= 1 || this.isViewAllDisabled;
   }
 
   /**
    * @returns {boolean|*}
    */
   get isPageNextDisabled() {
-    return this.page > this.pageLast - 1 || this.isViewAllDisabled;
+    return this._page > this.pageLast - 1 || this.isViewAllDisabled;
   }
 
   /* -----------------------------------------------
@@ -346,5 +346,61 @@ export default class ListView extends LightningElement {
 
   @api set infiniteScrolling(value) {
     this._infiniteScrolling = value;
+  }
+
+  get isLoading() {
+    return toBoolean(this._isLoading);
+  }
+
+  @api set isLoading(value) {
+    this._isLoading = value;
+  }
+
+  get columns() {
+    return this._columns ?? [];
+  }
+
+  @api set columns(value) {
+    this._columns = value;
+  }
+
+  get sortBy() {
+    return this._sortBy || '';
+  }
+
+  @api set sortBy(value) {
+    this._sortBy = value;
+  }
+
+  get sortDirection() {
+    return this._sortDirection || '';
+  }
+
+  @api set sortDirection(value) {
+    this._sortDirection = value;
+  }
+
+  get fieldErrors() {
+    return this._fieldErrors ?? [];
+  }
+
+  @api set fieldErrors(value) {
+    this._fieldErrors = value;
+  }
+
+  get draftValues() {
+    return this._draftValues ?? [];
+  }
+
+  @api set draftValues(value) {
+    this._draftValues = value;
+  }
+
+  get page() {
+    return this._page;
+  }
+
+  @api set page(value) {
+    this._page = value;
   }
 }

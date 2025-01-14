@@ -330,6 +330,23 @@ export default class ListViewDataQuery extends LightningElement {
   }
 
   /**
+   * Create a CSV download from the data that's currently displayed on the table.
+   */
+  onDownload() {
+    const csv = getCSV(this.data, this.columns);
+
+    const downloadElement = document.createElement('a');
+    downloadElement.href = encodeURI(`data:text/csv;charset=utf-8,${csv}`);
+    downloadElement.target = '_self';
+    downloadElement.download = `${this.title}.csv`;
+    document.body.appendChild(downloadElement);
+    downloadElement.click();
+  }
+
+  /* -----------------------------------------------
+    General Getters and Setters
+   ----------------------------------------------- */
+  /**
    * Get the metadata for a specific field (case inventive).
    *
    * @param fieldName
@@ -339,9 +356,6 @@ export default class ListViewDataQuery extends LightningElement {
     return this.dataMeta[fieldName?.toLowerCase()];
   }
 
-  /* -----------------------------------------------
-    General Getters and Setters
-   ----------------------------------------------- */
   /**
    * Gets a list of fields that have been filtered to only those
    * that are valid on the object itself.
@@ -397,18 +411,8 @@ export default class ListViewDataQuery extends LightningElement {
     return (this.dataOffset / (this.pageSize)) + 1;
   }
 
-  /**
-   * Create a CSV download from the data that's currently displayed on the table.
-   */
-  onDownload() {
-    const csv = getCSV(this.data, this.columns);
-
-    const downloadElement = document.createElement('a');
-    downloadElement.href = encodeURI(`data:text/csv;charset=utf-8,${csv}`);
-    downloadElement.target = '_self';
-    downloadElement.download = `${this.title}.csv`;
-    document.body.appendChild(downloadElement);
-    downloadElement.click();
+  get pageSizeMax() {
+    return PAGE_SIZE_MAX;
   }
 
   /* -----------------------------------------------
@@ -513,9 +517,5 @@ export default class ListViewDataQuery extends LightningElement {
 
   @api set hyperlinkNames(value) {
     this._hyperlinkNames = value;
-  }
-
-  get pageSizeMax() {
-    return PAGE_SIZE_MAX;
   }
 }
