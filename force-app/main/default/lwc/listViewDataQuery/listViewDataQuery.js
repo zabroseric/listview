@@ -272,8 +272,8 @@ export default class ListViewDataQuery extends LightningElement {
           variant: 'success'
         })
       );
-      this.draftValues = [];
       await this.refreshData();
+      this.draftValues = [];
 
     } catch (results) {
       // Build an errors object containing all info.
