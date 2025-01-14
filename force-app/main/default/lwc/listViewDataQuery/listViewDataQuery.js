@@ -8,7 +8,7 @@ import getColumn from './getColumn';
 import getRow from "./getRow";
 import {flattenObject, logApexFunc, titleCase, toBoolean} from "c/utils";
 import {
-  nameFields, searchTimerDelay,
+  nameFields,
   sortByDefault,
   sortDirectionDefault,
   soslMaxRowCount
@@ -59,6 +59,7 @@ export default class ListViewDataQuery extends LightningElement {
   isLoading = true;
   draftValues;
   fieldErrors;
+  searchValue;
 
   columns = [];
   data = [];
@@ -90,9 +91,9 @@ export default class ListViewDataQuery extends LightningElement {
    */
   async getData() {
     // The minimum length for a search term is 2 characters.
-    if (this.searchTerm.length > 1) {
+    if (this.searchValue?.length > 1) {
       this.data = (await getSearchSObjects({
-        sosl: `FIND '${this.searchTerm}' IN ALL FIELDS RETURNING ${titleCase(this.sObjectName)}`
+        sosl: `FIND '${this.searchValue.replace('\'', '\\\'')}' IN ALL FIELDS RETURNING ${titleCase(this.sObjectName)}`
           + `(`
           + `${this.fieldsValid.join(', ')} ${this.whereClause}`.trim() + ' '
           + `ORDER BY ${this.sortBy} ${this.sortDirection.toUpperCase()} LIMIT ${this.pageSize} OFFSET ${this.dataOffset}`.trim()
@@ -113,9 +114,9 @@ export default class ListViewDataQuery extends LightningElement {
    */
   async getDataCount() {
     // The minimum length for a search term is 2 characters.
-    if (this.searchTerm.length > 1) {
+    if (this.searchValue?.length > 1) {
       this.dataTotalCount = (await getSearchSObjectCount({
-        sosl: `FIND '${this.searchTerm}' IN ALL FIELDS RETURNING ${titleCase(this.sObjectName)}`
+        sosl: `FIND '${this.searchValue}' IN ALL FIELDS RETURNING ${titleCase(this.sObjectName)}`
           + `(${this.fieldsValid.join(', ').trim()} ${this.whereClause.trim()} LIMIT ${soslMaxRowCount})`
       }));
     } else {
@@ -187,7 +188,7 @@ export default class ListViewDataQuery extends LightningElement {
    * @param event
    */
   onSearch(event) {
-    this.searchTerm = event.detail;
+    this.searchValue = event.detail;
     this.onRefresh();
   }
 
@@ -542,16 +543,6 @@ export default class ListViewDataQuery extends LightningElement {
       .split(/[^a-z0-9_]+/gi)
       .map((field) => field.toLowerCase())
       ;
-  }
-
-  get searchTerm() {
-    return (this._searchTerm || '')
-      .replace('\'', '\\\'')
-      ;
-  }
-
-  @api set searchTerm(value) {
-    this._searchTerm = value;
   }
 
   get hyperlinkNames() {

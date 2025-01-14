@@ -17,7 +17,6 @@ export default class ListView extends LightningElement {
   @api enableRefresh;
   @api infiniteScrolling;
   @api page;
-  @api pageLast;
 
   _title;
   _subTitle;
@@ -154,7 +153,7 @@ export default class ListView extends LightningElement {
    * @param value
    */
   @api set error(value) {
-    if (this._error) {
+    if (value) {
       console.error(value);
     }
     this.isLoadingMore = false;
