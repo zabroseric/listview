@@ -419,28 +419,6 @@ export default class ListViewDataQuery extends LightningElement {
     return PAGE_SIZE_MAX;
   }
 
-  /* -----------------------------------------------
-    Dynamic Getters from the SOQL Statement
-   ----------------------------------------------- */
-  @api get sObjectName() {
-    return this.soqlGroups ? this.soqlGroups.sObjectName.toLowerCase() : '';
-  }
-
-  @api get fields() {
-    return this.soqlGroups ? this.soqlGroups.fields.split(',').map(field => field.replace(/\s/g, '').toLowerCase()) : [];
-  }
-
-  @api get whereClause() {
-    return (this.soqlGroups.conditions || '').replace(/(((limit|offset) [0-9])|order by ).*/i, '').trim();
-  }
-
-  @api get soqlGroups() {
-    return /SELECT (?<fields>.+?) FROM (?<sObjectName>[a-z0-9_]+)(?<conditions>.*)?/i.exec(this.soql)?.groups;
-  }
-
-  /* -----------------------------------------------
-    API Getters and Setters
-   ----------------------------------------------- */
   /**
    * Prefer the sort by provided, as a backup use the ORDER BY field name in the SOQL, and if that
    * isn't present use the default direction of sort field.
@@ -472,10 +450,39 @@ export default class ListViewDataQuery extends LightningElement {
       ;
   }
 
+  get editFieldsList() {
+    return this.editFields
+      .split(/[^a-z0-9_]+/gi)
+      .map((field) => field.toLowerCase())
+      ;
+  }
+
   set sortDirection(value) {
     this._sortDirection = value;
   }
 
+  /* -----------------------------------------------
+    Dynamic Getters from the SOQL Statement
+   ----------------------------------------------- */
+  @api get sObjectName() {
+    return this.soqlGroups ? this.soqlGroups.sObjectName.toLowerCase() : '';
+  }
+
+  @api get fields() {
+    return this.soqlGroups ? this.soqlGroups.fields.split(',').map(field => field.replace(/\s/g, '').toLowerCase()) : [];
+  }
+
+  @api get whereClause() {
+    return (this.soqlGroups.conditions || '').replace(/(((limit|offset) [0-9])|order by ).*/i, '').trim();
+  }
+
+  @api get soqlGroups() {
+    return /SELECT (?<fields>.+?) FROM (?<sObjectName>[a-z0-9_]+)(?<conditions>.*)?/i.exec(this.soql)?.groups;
+  }
+
+  /* -----------------------------------------------
+    API Getters and Setters
+   ----------------------------------------------- */
   get soql() {
     return this._soql || '';
   }
@@ -506,13 +513,6 @@ export default class ListViewDataQuery extends LightningElement {
 
   @api set editFields(value) {
     this._editFields = value;
-  }
-
-  get editFieldsList() {
-    return this.editFields
-      .split(/[^a-z0-9_]+/gi)
-      .map((field) => field.toLowerCase())
-      ;
   }
 
   get hyperlinkNames() {
