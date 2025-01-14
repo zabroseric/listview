@@ -94,7 +94,7 @@ export default class ListViewDataQuery extends LightningElement {
   async getData() {
     // The minimum length for a search term is 2 characters.
     if (this.searchTerm.length > 1) {
-      this.data = this.logTable = (await getSearchSObjects({
+      this.data = (await getSearchSObjects({
         sosl: `FIND '${this.searchTerm}' IN ALL FIELDS RETURNING ${titleCase(this.sObjectName)}`
           + `(`
           + `${this.fieldsValid.join(', ')} ${this.whereClause}`.trim() + ' '
@@ -102,7 +102,7 @@ export default class ListViewDataQuery extends LightningElement {
           + `)`
       })).map((row) => getRow(row, this.columns));
     } else {
-      this.data = this.logTable = (await getSObjects({
+      this.data = (await getSObjects({
         soql: `SELECT ${this.fieldsValid.join(', ')} FROM ${titleCase(this.sObjectName)} ${this.whereClause}`.trim() + ' '
           + `ORDER BY ${this.sortBy} ${this.sortDirection.toUpperCase()} LIMIT ${this.pageSize} OFFSET ${this.dataOffset}`.trim()
       })).map((row) => getRow(row, this.columns));
@@ -136,12 +136,12 @@ export default class ListViewDataQuery extends LightningElement {
   async getMetaData() {
     const fieldRelationshipIds = this.fieldRelationshipIds;
 
-    const dataMeta = this.dataMeta = this.debug = await getSObjectFields({
+    const dataMeta = this.dataMeta = await getSObjectFields({
       sObjectName: this.sObjectName,
       fields: [...new Set([...this.fields, ...this.fieldIds])]
     });
 
-    this.columns = this.debug = this.fields
+    this.columns = this.fields
       .map((field) => field.toLowerCase()) // Convert to lowercase.
       .map((field) => dataMeta[field]) // Get the respective metadata.
       .map((metaData, index) => getColumn(metaData, {
@@ -320,9 +320,6 @@ export default class ListViewDataQuery extends LightningElement {
       if (this.fieldErrors.table.messages.length === 0) {
         this.fieldErrors.table.messages = ['Please see the rows for more details.'];
       }
-
-      console.debug(this.fieldErrors);
-      console.error(errorResults);
     } finally {
       this.isLoading = false;
     }
@@ -413,21 +410,10 @@ export default class ListViewDataQuery extends LightningElement {
   }
 
   /**
-   * As an alternative to a class variable decorator, we can debug a value
-   * directly by setting the output to be the debug class variable.
-   *
-   * @param value
-   */
-  set debug(value) {
-    console.debug(value);
-  }
-
-  /**
    * Create a CSV download from the data that's currently displayed on the table.
    */
   onDownload() {
     const csv = getCSV(this.data, this.columns);
-    this.debug = csv;
 
     const downloadElement = document.createElement('a');
     downloadElement.href = encodeURI(`data:text/csv;charset=utf-8,${csv}`);
@@ -435,16 +421,6 @@ export default class ListViewDataQuery extends LightningElement {
     downloadElement.download = `${this.title}.csv`;
     document.body.appendChild(downloadElement);
     downloadElement.click();
-  }
-
-  /**
-   * As an alternative to a class variable decorator, we can log a table value
-   * directly by setting the output to be the logTable class variable.
-   *
-   * @param value
-   */
-  set logTable(value) {
-    console.table(value);
   }
 
   /* -----------------------------------------------
