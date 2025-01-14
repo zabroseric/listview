@@ -30,6 +30,8 @@ const getSearchSObjectCount = logApexFunc('searchSObjectCount', getSearchSObject
 const getSObjectFields = logApexFunc('getSObjectFields', getSObjectFieldsApex);
 const updateRecord = logApexFunc('updateRecord', updateRecordApex, true);
 
+const PAGE_SIZE_DEFAULT = 200;
+
 export default class ListViewDataQuery extends LightningElement {
 
   // Controls the information that is queried and presented.
@@ -38,7 +40,7 @@ export default class ListViewDataQuery extends LightningElement {
   // Presentation of information.
   @api title;
   @api subTitle;
-  _icon;
+  @api icon;
   _pageSize;
   _showRowNumber;
   _infiniteScrolling;
@@ -55,7 +57,7 @@ export default class ListViewDataQuery extends LightningElement {
   // Helper variables.
   _sortBy;
   _sortDirection;
-  _error;
+  error;
   dataOffset = 0;
   dataTotalCount;
   isLoading = true;
@@ -167,7 +169,7 @@ export default class ListViewDataQuery extends LightningElement {
     this.isLoading = true;
 
     this.getData()
-      .then(() => this.clearError())
+      .then(() => this.error = undefined)
       .catch((e) => this.error = e)
       .finally(() => this.isLoading = false)
     ;
@@ -180,7 +182,7 @@ export default class ListViewDataQuery extends LightningElement {
     this.isLoading = true;
 
     Promise.all([this.getData(), this.getDataCount()])
-      .then(() => this.clearError())
+      .then(() => this.error = undefined)
       .catch((e) => this.error = e)
       .finally(() => this.isLoading = false)
     ;
@@ -410,15 +412,6 @@ export default class ListViewDataQuery extends LightningElement {
   }
 
   /**
-   * Returns true if the user is currently in page builder.
-   *
-   * @returns {boolean}
-   */
-  get isPageBuilder() {
-    return window.location.pathname.indexOf('flexipageEditor') !== -1;
-  }
-
-  /**
    * Get the page number based on the current offset.
    *
    * Offset: 0, Page Size: 10 = Page 1
@@ -527,32 +520,6 @@ export default class ListViewDataQuery extends LightningElement {
   /* -----------------------------------------------
     API Getters and Setters
    ----------------------------------------------- */
-  get error() {
-    return this._error;
-  }
-
-  /**
-   * Adds an error to the UI depending on where we are and logs
-   * the error to the console.
-   *
-   * @param value
-   */
-  @api set error(value) {
-    if (!this.isPageBuilder) {
-      this._error = errorMessageGeneric;
-    } else {
-      this._error = (this._error ? '' : '\n') + value;
-    }
-    console.error(value);
-  }
-
-  /**
-   * Provides the ability to clear an error once the error conditions have been resolved.
-   */
-  @api clearError() {
-    this._error = undefined;
-  }
-
   /**
    * Prefer the sort by provided, as a backup use the ORDER BY field name in the SOQL, and if that
    * isn't present use the default direction of sort field.
@@ -596,45 +563,8 @@ export default class ListViewDataQuery extends LightningElement {
     this._soql = value;
   }
 
-  /**
-   * Interpret the icon provided if one is available, otherwise
-   * show one depending on other information we have retrieved.
-   *
-   * @returns {string|undefined|*}
-   */
-  get icon() {
-    const iconValidFormat = /^[a-z]+:[a-z0-9]+$/i.exec(this._icon) !== null;
-
-    // Icon is provided, and is of a valid format.
-    if (this._icon && iconValidFormat) {
-      return this._icon;
-    }
-
-    // Icon is provided and invalid format.
-    if (this._icon && !iconValidFormat) {
-      console.info(`The icon ${this.icon} is invalid, expected format "%:%"`);
-      return '';
-    }
-
-    // Auto-detect - SObject name missing.
-    if (!this.sObjectName) {
-      return 'standard:default';
-    }
-
-    // Auto-detect - Standard SObject.
-    if (this.sObjectName.indexOf('__c') === -1) {
-      return `standard:${this.sObjectName.toLowerCase()}`;
-    }
-
-    return '';
-  }
-
-  @api set icon(value) {
-    this._icon = value;
-  }
-
   get pageSize() {
-    return Number(this._pageSize) > 0 ? Number(this._pageSize) : pageSizeDefault;
+    return Number(this._pageSize) > 0 ? Number(this._pageSize) : PAGE_SIZE_DEFAULT;
   }
 
   @api set pageSize(value) {

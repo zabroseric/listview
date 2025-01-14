@@ -43,8 +43,8 @@ export default class ListViewRecordPage extends LightningElement {
 
       // If we load new fields from the record, ensure that we refresh the list view.
       if (this.hasLoadedFieldValues) {
-        this.template.querySelector('c-list-view').soql = this.soqlModified;
-        this.template.querySelector('c-list-view').refresh();
+        this.template.querySelector('c-list-view-data-query').soql = this.soqlModified;
+        this.template.querySelector('c-list-view-data-query').refresh();
       }
       this.hasLoadedFieldValues = true;
     } else if (error) {
@@ -115,7 +115,7 @@ export default class ListViewRecordPage extends LightningElement {
 
     const messageCallback = (event) => {
       if (event.data.payload.CreatedById === userId) {
-        this.template.querySelector('c-list-view').refresh();
+        this.template.querySelector('c-list-view-data-query').refresh();
       }
     }
     console.debug(`Subscribing to: ${sObjectChangeEvent}`);
@@ -128,7 +128,7 @@ export default class ListViewRecordPage extends LightningElement {
    * @returns {Promise<string>}
    */
   async getsObjectChangeEvent() {
-    const sObjectName = await getSObjectName({sObjectName: this.template.querySelector('c-list-view').sObjectName});
+    const sObjectName = await getSObjectName({sObjectName: this.sObjectName});
     return !sObjectName.includes('__c') ? `/data/${sObjectName}ChangeEvent` : `/data/${sObjectName}__ChangeEvent`;
   }
 }

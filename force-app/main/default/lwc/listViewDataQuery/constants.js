@@ -1,4 +1,4 @@
-export const errorMessageGeneric = 'An unknown error occurred, please contact support.';
+
 export const pageSizeMax = 1000;
 export const pageSizeDefault = 200;
 export const sortByDefault = 'id';
