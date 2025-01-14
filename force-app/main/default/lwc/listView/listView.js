@@ -301,10 +301,10 @@ export default class ListView extends LightningElement {
   }
 
   get valuesTotalCount() {
-    return Number(this._valuesTotalCount) ?? this.values.length;
+    return Number(this._valuesTotalCount) || this.values.length;
   }
 
-  set valuesTotalCount(value) {
+  @api set valuesTotalCount(value) {
     this._valuesTotalCount = value;
   }
 
@@ -357,7 +357,7 @@ export default class ListView extends LightningElement {
   }
 
   get columns() {
-    return this._columns ?? [];
+    return this._columns || [];
   }
 
   @api set columns(value) {
@@ -381,7 +381,7 @@ export default class ListView extends LightningElement {
   }
 
   get fieldErrors() {
-    return this._fieldErrors ?? [];
+    return this._fieldErrors || [];
   }
 
   @api set fieldErrors(value) {
@@ -389,7 +389,7 @@ export default class ListView extends LightningElement {
   }
 
   get draftValues() {
-    return this._draftValues ?? [];
+    return this._draftValues || [];
   }
 
   @api set draftValues(value) {

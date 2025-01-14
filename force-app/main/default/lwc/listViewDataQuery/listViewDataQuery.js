@@ -158,27 +158,31 @@ export default class ListViewDataQuery extends LightningElement {
   /**
    * Refreshes the data by wrapping the call and managing the loading state.
    */
-  @api refreshData() {
-    this.isLoading = true;
-
-    this.getData()
-      .then(() => this.error = undefined)
-      .catch((e) => this.error = e)
-      .finally(() => this.isLoading = false)
-    ;
+  @api async refreshData() {
+    try {
+      this.isLoading = true;
+      await this.getData();
+      this.error = undefined;
+    } catch (e) {
+      this.error = e;
+    } finally {
+      this.isLoading = false;
+    }
   }
 
   /**
    * Refreshes both the data and the count.
    */
-  @api onRefresh() {
-    this.isLoading = true;
-
-    Promise.all([this.getData(), this.getDataCount()])
-      .then(() => this.error = undefined)
-      .catch((e) => this.error = e)
-      .finally(() => this.isLoading = false)
-    ;
+  @api async onRefresh() {
+    try {
+      this.isLoading = true;
+      await Promise.all([this.getData(), this.getDataCount()]);
+      this.error = undefined;
+    } catch (e) {
+      this.error = e;
+    } finally {
+      this.isLoading = false;
+    }
   }
 
   /**
@@ -186,34 +190,34 @@ export default class ListViewDataQuery extends LightningElement {
    *
    * @param event
    */
-  onSearch(event) {
+  async onSearch(event) {
     this.searchValue = event.detail;
-    this.onRefresh();
+    await this.onRefresh();
   }
 
   /**
    * On pressing of the Previous Page button.
    */
-  onPagePrevious() {
+  async onPagePrevious() {
     this.dataOffset -= this.pageSize;
-    this.refreshData();
+    await this.onRefresh();
   }
 
   /**
    * On pressing of the Next Page button.
    */
-  onPageNext() {
+  async onPageNext() {
     this.dataOffset += this.pageSize;
-    this.refreshData();
+    await this.onRefresh();
   }
 
   /**
    * On pressing of the View All button.
    */
-  onViewAll() {
+  async onViewAll() {
     this.dataOffset = 0;
     this.pageSize = this.pageSizeMax;
-    this.refreshData();
+    await this.onRefresh();
   }
 
   /**
@@ -222,15 +226,17 @@ export default class ListViewDataQuery extends LightningElement {
    *
    * @param event
    */
-  onSort(event) {
-    this.sortBy = event.detail.fieldName;
-    this.sortDirection = event.detail.sortDirection;
-    this.isLoading = true;
-
-    this.getData()
-      .catch((e) => this.error = e)
-      .finally(() => this.isLoading = false)
-    ;
+  async onSort(event) {
+    try {
+      this.isLoading = true;
+      this.sortBy = event.detail.fieldName;
+      this.sortDirection = event.detail.sortDirection;
+      await this.getData();
+    } catch (e) {
+      this.error = e;
+    } finally {
+      this.isLoading = false;
+    }
   }
 
   /**
@@ -267,7 +273,7 @@ export default class ListViewDataQuery extends LightningElement {
         })
       );
       this.draftValues = [];
-      this.refreshData();
+      await this.refreshData();
 
     } catch (results) {
       // Build an errors object containing all info.
@@ -324,9 +330,8 @@ export default class ListViewDataQuery extends LightningElement {
    * @returns {boolean}
    */
   async onLoadMore() {
-    this.pageSize = this.pageSize * 2;
-
     try {
+      this.pageSize = this.pageSize * 2;
       await this.getData();
     } catch (e) {
       this.error = e;
