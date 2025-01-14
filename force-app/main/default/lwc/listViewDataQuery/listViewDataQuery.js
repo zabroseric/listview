@@ -7,12 +7,6 @@ import getSObjectFieldsApex from '@salesforce/apex/ListViewController.getSObject
 import getColumn from './getColumn';
 import getRow from "./getRow";
 import {flattenObject, logApexFunc, titleCase, toBoolean} from "c/utils";
-import {
-  nameFields,
-  sortByDefault,
-  sortDirectionDefault,
-  soslMaxRowCount
-} from "./constants";
 import {updateRecord as updateRecordApex} from "lightning/uiRecordApi";
 import {ShowToastEvent} from "lightning/platformShowToastEvent";
 import getCSV from "./getCSV";
@@ -27,6 +21,16 @@ const updateRecord = logApexFunc('updateRecord', updateRecordApex, true);
 
 const PAGE_SIZE_DEFAULT = 200;
 const PAGE_SIZE_MAX = 1000;
+const SORT_BY_DEFAULT = 'id';
+const SORT_BY_DIRECTION_DEFAULT = 'asc';
+const SOSL_MAX_ROW_COUNT = 2000;
+
+// A list of special fields that should provide a link to the record id.
+export const NAME_FIELDS = [
+  'casenumber',
+  'ordernumber',
+  'name',
+];
 
 export default class ListViewDataQuery extends LightningElement {
 
@@ -112,7 +116,7 @@ export default class ListViewDataQuery extends LightningElement {
     if (this.searchValue?.length > 1) {
       this.dataTotalCount = (await getSearchSObjectCount({
         sosl: `FIND '${this.searchValue}' IN ALL FIELDS RETURNING ${titleCase(this.sObjectName)}`
-          + `(${this.fieldsValid.join(', ').trim()} ${this.whereClause.trim()} LIMIT ${soslMaxRowCount})`
+          + `(${this.fieldsValid.join(', ').trim()} ${this.whereClause.trim()} LIMIT ${SOSL_MAX_ROW_COUNT})`
       }));
     } else {
       this.dataTotalCount = await getSObjectCount({
@@ -380,7 +384,7 @@ export default class ListViewDataQuery extends LightningElement {
    */
   get fieldIds() {
     return [...this.fields
-      .filter((fieldName) => nameFields.includes(fieldName.replace(/.+\.([^.]+)$/, '$1')))
+      .filter((fieldName) => NAME_FIELDS.includes(fieldName.replace(/.+\.([^.]+)$/, '$1')))
       .map((fieldName) => (fieldName.replace(/\.[^.]+$/, '.id')))
     ];
   }
@@ -393,7 +397,7 @@ export default class ListViewDataQuery extends LightningElement {
    */
   get fieldRelationshipIds() {
     return Object.assign({}, ...this.fields
-      .filter((fieldName) => nameFields.includes(fieldName.replace(/.+\.([^.]+)$/, '$1')))
+      .filter((fieldName) => NAME_FIELDS.includes(fieldName.replace(/.+\.([^.]+)$/, '$1')))
       .map((fieldName) => ({[fieldName]: fieldName.replace(/\.[^.]+$/, '').replace(/__r$/, '__r.id')}))
     );
   }
@@ -446,8 +450,8 @@ export default class ListViewDataQuery extends LightningElement {
   get sortBy() {
     return (this._sortBy
       || this.getFieldMetaData(/order by (?<orderby>[a-z0-9_]+)/i.exec(this.soqlGroups.conditions)?.groups?.orderby?.toLowerCase())?.name
-      || this.getFieldMetaData(sortByDefault)?.name
-      || sortByDefault
+      || this.getFieldMetaData(SORT_BY_DEFAULT)?.name
+      || SORT_BY_DEFAULT
     ).toLowerCase();
   }
 
@@ -464,7 +468,7 @@ export default class ListViewDataQuery extends LightningElement {
   get sortDirection() {
     return this._sortDirection
       || /order by [a-z0-9_]+ (?<orderbydirection>(asc|desc))/i.exec(this.soqlGroups.conditions)?.groups?.orderbydirection?.toLowerCase()
-      || sortDirectionDefault
+      || SORT_BY_DIRECTION_DEFAULT
       ;
   }
 

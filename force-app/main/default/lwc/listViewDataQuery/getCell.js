@@ -3,7 +3,7 @@ import {getId} from "c/utils";
 /**
  * Manipulates the cell value before rendering it into the datatable.
  */
-export const getCell = (value, column) => {
+const getCell = (value, column) => {
   // Translate the cell values as required.
   switch (column?.meta?.type) {
     case 'picklist':
@@ -38,3 +38,5 @@ export const getCell = (value, column) => {
 
 const getUrlHref = (value) => /href="(?<href>.+?)"/i.exec(value)?.groups?.href;
 const addUrlProtocol = (value) => /^(https?:\/\/|\/)/.exec(value) === null ? 'https://' + value : value;
+
+export default getCell;

@@ -1,5 +1,49 @@
 import {mergeOptions} from "c/utils";
-import {dataTypes, dataTypesNoSort, fieldLabelsReplace} from "./constants";
+
+// A list of all field names that should be replaced.
+const FIELD_LABELS_REPLACE = {
+  'Full Name': 'Contact Name',
+};
+
+// SOQL sorting is not supported for these data types.
+const DATA_TYPES_NO_SORTING = [
+  'multipicklist',
+  'picklist',
+  'textarea',
+  'encryptedstring',
+];
+
+// Provides the mapping between apex and datatable column types.
+const DATA_TYPE_COLUMN_MAPPING = {
+  'address': 'string',
+  'anytype': 'string',
+  'base64': 'string',
+  'boolean': 'boolean',
+  'combobox': 'string',
+  'complexvalue': 'string',
+  'currency': 'currency',
+  'datacategorygroupreference': 'string',
+  'date': 'date',
+  'datetime': 'date',
+  'double': 'number',
+  'email': 'email',
+  'encryptedstring': 'string',
+  'id': 'string',
+  'integer': 'number',
+  'json': 'string',
+  'location': 'location',
+  'long': 'number',
+  'multipicklist': 'string',
+  'percent': 'percent',
+  'phone': 'phone',
+  'picklist': 'string',
+  'reference': 'string',
+  'sobject': 'string',
+  'string': 'string',
+  'textarea': 'string',
+  'time': 'date',
+  'url': 'url',
+};
 
 const optionDefaults = {
   urlType: 'button-base',
@@ -34,8 +78,8 @@ const getColumn = (metaData, options) => {
   const columnBase = {
     fieldName: options.fieldName,
     label: replaceFieldLabel(!isColumnHide(metaData) ? metaData.label : ''),
-    type: dataTypes[metaData.type],
-    sortable: !dataTypesNoSort.includes(metaData.type),
+    type: DATA_TYPE_COLUMN_MAPPING[metaData.type],
+    sortable: !DATA_TYPES_NO_SORTING.includes(metaData.type),
     meta: metaData,
     editable: editFieldsList.includes(options.fieldName)
   };
@@ -132,6 +176,6 @@ const isHyperlinkFormula = (metaData) => /hyperlink/i.exec(metaData.calculatedFo
 const isColumnHide = (metaData) => /(hidden)/i.exec(metaData.label) !== null;
 const getButtonVariant = (value) => /button-(?<variant>.+)/.exec(value)?.groups?.variant;
 
-export const replaceFieldLabel = (fieldLabel) => ((fieldLabel in fieldLabelsReplace ? fieldLabelsReplace[fieldLabel] : fieldLabel) || '').replace(/ ID$/, ' Name');
+const replaceFieldLabel = (fieldLabel) => ((fieldLabel in FIELD_LABELS_REPLACE ? FIELD_LABELS_REPLACE[fieldLabel] : fieldLabel) || '').replace(/ ID$/, ' Name');
 
 export default getColumn;
