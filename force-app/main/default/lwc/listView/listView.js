@@ -8,7 +8,6 @@ export default class ListView extends LightningElement {
 
   @api isLoading;
   @api enableSearch;
-  @api enableDownload;
   @api columns;
   @api draftValues;
   @api sortBy;
@@ -26,6 +25,7 @@ export default class ListView extends LightningElement {
   _pageSizeInitial;
   _pageSizeMax;
   _showRowNumber;
+  _enableDownload;
   _error;
   _values;
   _valuesTotalCount;
@@ -302,5 +302,13 @@ export default class ListView extends LightningElement {
 
   @api set showRowNumber(value) {
     this._showRowNumber = value;
+  }
+
+  get enableDownload() {
+    return toBoolean(this._enableDownload);
+  }
+
+  @api set enableDownload(value) {
+    this._enableDownload = value;
   }
 }

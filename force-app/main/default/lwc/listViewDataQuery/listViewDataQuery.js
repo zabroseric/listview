@@ -39,13 +39,13 @@ export default class ListViewDataQuery extends LightningElement {
   @api subTitle;
   @api icon;
   @api showRowNumber;
+  @api enableDownload;
   _pageSize;
   _infiniteScrolling;
   _infiniteScrollingAdditionalRows;
   _urlType;
   _enableSearch;
   _enableRefresh;
-  _enableDownload;
   _hyperlinkNames;
 
   // Editing of information.
@@ -534,14 +534,6 @@ export default class ListViewDataQuery extends LightningElement {
 
   @api set enableRefresh(value) {
     this._enableRefresh = value;
-  }
-
-  get enableDownload() {
-    return toBoolean(this._enableDownload);
-  }
-
-  @api set enableDownload(value) {
-    this._enableDownload = value;
   }
 
   get editFields() {
