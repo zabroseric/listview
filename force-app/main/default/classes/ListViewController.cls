@@ -64,7 +64,12 @@ public with sharing class ListViewController {
   @AuraEnabled(Cacheable=true)
   public static Map<String, Object> getSObjectInfo(String sObjectName)
   {
-      return (Map<String, Object>) JSON.deserializeUntyped(JSON.serialize(Schema.getGlobalDescribe().get(sObjectName).getDescribe()));
+    SObjectType sObjType = Schema.getGlobalDescribe().get(sObjectName);
+    if (sObjType == null) {
+      throw new AuraHandledException('Could not find an sObject with the name \'' + sObjectName + '\'');
+    }
+
+    return (Map<String, Object>) JSON.deserializeUntyped(JSON.serialize(sObjType.getDescribe()));
   }
 
   /**
@@ -78,7 +83,7 @@ public with sharing class ListViewController {
   @AuraEnabled(Cacheable=true)
   public static String getSObjectName(String sObjectName)
   {
-    return Schema.getGlobalDescribe().get(sObjectName).getDescribe().getName();
+    return (String) ListViewController.getSObjectInfo(sObjectName).get('name');
   }
 
   /**
@@ -159,7 +164,12 @@ public with sharing class ListViewController {
    */
   private static Map<String, DescribeFieldResult> getSObjectDescribes(String sObjectName)
   {
-    Map<String, Schema.SObjectField> sObjSchema = Schema.getGlobalDescribe().get(sObjectName).getDescribe().fields.getMap();
+    SObjectType sObjType = Schema.getGlobalDescribe().get(sObjectName);
+    if (sObjType == null) {
+      throw new AuraHandledException('Could not find an sObject with the name \'' + sObjectName + '\'');
+    }
+
+    Map<String, Schema.SObjectField> sObjSchema = sObjType.getDescribe().fields.getMap();
     Map<String, DescribeFieldResult> sObjDescribe = new Map<String, DescribeFieldResult>();
 
     for (String fieldName : sObjSchema.keySet()) {
