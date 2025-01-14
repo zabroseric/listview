@@ -1,5 +1,5 @@
 import {api, LightningElement} from 'lwc';
-import {toBoolean} from "../utils/utils";
+import {toBoolean} from "c/utils";
 
 const ERROR_MESSAGE_GENERIC = 'An unknown error occurred, please contact support.';
 const PAGE_SIZE_DEFAULT = 20;
@@ -11,7 +11,6 @@ export default class ListView extends LightningElement {
   @api enableDownload;
   @api columns;
   @api draftValues;
-  @api showRowNumber;
   @api sortBy;
   @api sortDirection;
   @api fieldErrors;
@@ -26,6 +25,7 @@ export default class ListView extends LightningElement {
   _pageSize;
   _pageSizeInitial;
   _pageSizeMax;
+  _showRowNumber;
   _error;
   _values;
   _valuesTotalCount;
