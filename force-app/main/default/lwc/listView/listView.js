@@ -8,13 +8,11 @@ const SEARCH_DEBOUNCE_TIMEOUT = 500;
 export default class ListView extends LightningElement {
 
   @api isLoading;
-  @api enableSearch;
   @api columns;
   @api draftValues;
   @api sortBy;
   @api sortDirection;
   @api fieldErrors;
-  @api enableRefresh;
   @api infiniteScrolling;
   @api page;
 
@@ -25,7 +23,9 @@ export default class ListView extends LightningElement {
   _pageSizeInitial;
   _pageSizeMax;
   _showRowNumber;
+  _enableSearch;
   _enableDownload;
+  _enableRefresh;
   _error;
   _values;
   _valuesTotalCount;
@@ -321,5 +321,21 @@ export default class ListView extends LightningElement {
 
   @api set enableDownload(value) {
     this._enableDownload = value;
+  }
+
+  get enableSearch() {
+    return toBoolean(this._enableSearch);
+  }
+
+  @api set enableSearch(value) {
+    this._enableSearch = value;
+  }
+
+  get enableRefresh() {
+    return toBoolean(this._enableRefresh);
+  }
+
+  @api set enableRefresh(value) {
+    this._enableRefresh = value;
   }
 }
