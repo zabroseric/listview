@@ -30,10 +30,7 @@ const PAGE_SIZE_MAX = 1000;
 
 export default class ListViewDataQuery extends LightningElement {
 
-  // Controls the information that is queried and presented.
-  _soql;
-
-  // Presentation of information.
+  // Exposed properties
   @api title;
   @api subTitle;
   @api icon;
@@ -41,16 +38,14 @@ export default class ListViewDataQuery extends LightningElement {
   @api enableDownload;
   @api enableSearch;
   @api enableRefresh;
+  @api infiniteScrolling;
   _pageSize;
-  _infiniteScrolling;
-  _infiniteScrollingAdditionalRows;
   _urlType;
   _hyperlinkNames;
-
-  // Editing of information.
   _editFields;
+  _soql;
 
-  // Helper variables.
+  // Internal properties
   _sortBy;
   _sortDirection;
   error;
@@ -320,13 +315,12 @@ export default class ListViewDataQuery extends LightningElement {
   }
 
   /**
-   * When infinite scrolling is enabled, the page size is increased is added to
-   * based on the original page size.
+   * When infinite scrolling is enabled, the page size is increased exponentially.
    *
    * @returns {boolean}
    */
   async onLoadMore() {
-    this.pageSize += this.infiniteScrollingAdditionalRows;
+    this.pageSize = this.pageSize * 2;
 
     try {
       await this.getData();
@@ -488,22 +482,6 @@ export default class ListViewDataQuery extends LightningElement {
 
   @api set pageSize(value) {
     this._pageSize = value;
-  }
-
-  get infiniteScrolling() {
-    return toBoolean(this._infiniteScrolling);
-  }
-
-  @api set infiniteScrolling(value) {
-    this._infiniteScrolling = value;
-  }
-
-  get infiniteScrollingAdditionalRows() {
-    return Number(this._infiniteScrollingAdditionalRows) > 0 ? Number(this._infiniteScrollingAdditionalRows) : this.pageSize;
-  }
-
-  @api set infiniteScrollingAdditionalRows(value) {
-    this._infiniteScrollingAdditionalRows = value;
   }
 
   get urlType() {
