@@ -3,6 +3,7 @@ import {toBoolean} from "c/utils";
 
 const ERROR_MESSAGE_GENERIC = 'An unknown error occurred, please contact support.';
 const PAGE_SIZE_DEFAULT = 20;
+const SEARCH_DEBOUNCE_TIMEOUT = 500;
 
 export default class ListView extends LightningElement {
 
@@ -31,6 +32,7 @@ export default class ListView extends LightningElement {
   _valuesTotalCount;
 
   isLoadingMore = false;
+  searchTimeout;
 
   onLoadMore() {
     // Don't show more than our maximum limit or what is available.
@@ -54,8 +56,18 @@ export default class ListView extends LightningElement {
     this.dispatchEvent(new CustomEvent('refresh'));
   }
 
+  /**
+   * Enters a search term that is then used in the SOQL query.
+   *
+   * @param event
+   */
   onSearch(event) {
-    this.dispatchEvent(new CustomEvent('search', { detail: event.target.value }));
+    window.clearTimeout(this.searchTimeout);
+    const searchValue = event.target.value;
+
+    this.searchTimeout = setTimeout(() => {
+      this.dispatchEvent(new CustomEvent('search', { detail: searchValue }));
+    }, SEARCH_DEBOUNCE_TIMEOUT);
   }
 
   onPagePrevious() {

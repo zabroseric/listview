@@ -23,9 +23,7 @@ export default class DatatableButton extends NavigationMixin(LightningElement) {
       };
     }
 
-    console.debug('Redirecting with parameters', urlConfig);
     this[NavigationMixin.Navigate](urlConfig);
-
   }
 
   get classNames() {

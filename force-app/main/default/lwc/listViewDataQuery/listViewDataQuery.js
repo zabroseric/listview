@@ -8,8 +8,7 @@ import getColumn from './getColumn';
 import getRow from "./getRow";
 import {flattenObject, logApexFunc, titleCase, toBoolean} from "c/utils";
 import {
-  nameFields,
-  searchTimerDelay,
+  nameFields, searchTimerDelay,
   sortByDefault,
   sortDirectionDefault,
   soslMaxRowCount
@@ -60,8 +59,6 @@ export default class ListViewDataQuery extends LightningElement {
   isLoading = true;
   draftValues;
   fieldErrors;
-  _searchTerm;
-  searchTimer;
 
   columns = [];
   data = [];
@@ -174,7 +171,7 @@ export default class ListViewDataQuery extends LightningElement {
   /**
    * Refreshes both the data and the count.
    */
-  @api refresh() {
+  @api onRefresh() {
     this.isLoading = true;
 
     Promise.all([this.getData(), this.getDataCount()])
@@ -190,12 +187,8 @@ export default class ListViewDataQuery extends LightningElement {
    * @param event
    */
   onSearch(event) {
-    window.clearTimeout(this.searchTimer);
-
     this.searchTerm = event.detail;
-    this.searchTimer = setTimeout(() => {
-      this.refresh();
-    }, searchTimerDelay);
+    this.onRefresh();
   }
 
   /**

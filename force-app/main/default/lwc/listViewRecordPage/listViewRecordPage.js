@@ -44,7 +44,7 @@ export default class ListViewRecordPage extends LightningElement {
       // If we load new fields from the record, ensure that we refresh the list view.
       if (this.hasLoadedFieldValues) {
         this.template.querySelector('c-list-view-data-query').soql = this.soqlModified;
-        this.template.querySelector('c-list-view-data-query').refresh();
+        this.template.querySelector('c-list-view-data-query').onRefresh();
       }
       this.hasLoadedFieldValues = true;
     } else if (error) {
@@ -99,7 +99,7 @@ export default class ListViewRecordPage extends LightningElement {
    */
   renderedCallback() {
     if (!this.hasRendered) {
-      this.onSubscribe().catch((e) => console.error(e));
+      this.onSubscribe().catch(console.error);
       this.hasRendered = true;
     }
   }
@@ -115,11 +115,10 @@ export default class ListViewRecordPage extends LightningElement {
 
     const messageCallback = (event) => {
       if (event.data.payload.CreatedById === userId) {
-        this.template.querySelector('c-list-view-data-query').refresh();
+        this.template.querySelector('c-list-view-data-query').onRefresh();
       }
     }
-    console.debug(`Subscribing to: ${sObjectChangeEvent}`);
-    subscribe(sObjectChangeEvent, -1, messageCallback).catch((e) => console.error(e));
+    subscribe(sObjectChangeEvent, -1, messageCallback).catch(console.error);
   }
 
   /**
