@@ -7,6 +7,7 @@ const getCell = (value, column) => {
   // Translate the cell values as required.
   switch (column?.meta?.type) {
     case 'picklist':
+      return value;
     case 'multipicklist':
       return value
         .split(';')

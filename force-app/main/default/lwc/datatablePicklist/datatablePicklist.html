@@ -1,0 +1,14 @@
+<template>
+  <template lwc:if={isInputVisible}>
+    <lightning-combobox
+        lwc:ref="input"
+        variant="label-hidden"
+        value={value}
+        options={options}
+        onchange={onChange}>
+    </lightning-combobox>
+  </template>
+  <template lwc:else>
+    {label}
+  </template>
+</template>

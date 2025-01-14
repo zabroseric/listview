@@ -15,6 +15,7 @@
         <members>card</members>
         <members>datatable</members>
         <members>datatableButton</members>
+        <members>datatablePicklist</members>
         <name>LightningComponentBundle</name>
     </types>
     <version>62.0</version>

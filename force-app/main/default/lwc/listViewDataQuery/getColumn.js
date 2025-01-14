@@ -36,7 +36,7 @@ const DATA_TYPE_COLUMN_MAPPING = {
   'multipicklist': 'string',
   'percent': 'percent',
   'phone': 'phone',
-  'picklist': 'string',
+  'picklist': 'customPicklist',
   'reference': 'string',
   'sobject': 'string',
   'string': 'string',
@@ -166,6 +166,13 @@ const getColumn = (metaData, options) => {
           latitude: `${columnBase.fieldName}-latitude`,
           longitude: `${columnBase.fieldName}-longitude`,
         },
+      };
+    case 'picklist':
+      return {
+        ...columnBase,
+        typeAttributes: {
+          options: metaData.picklistValues.map(({ value, label }) => ({ value, label })),
+        }
       };
     default:
       return columnBase;
