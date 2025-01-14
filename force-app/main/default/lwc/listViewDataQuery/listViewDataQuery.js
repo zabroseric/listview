@@ -38,8 +38,8 @@ export default class ListViewDataQuery extends LightningElement {
   @api title;
   @api subTitle;
   @api icon;
+  @api showRowNumber;
   _pageSize;
-  _showRowNumber;
   _infiniteScrolling;
   _infiniteScrollingAdditionalRows;
   _urlType;
@@ -459,7 +459,7 @@ export default class ListViewDataQuery extends LightningElement {
     ).toLowerCase();
   }
 
-  @api set sortBy(value) {
+  set sortBy(value) {
     this._sortBy = value;
   }
 
@@ -476,7 +476,7 @@ export default class ListViewDataQuery extends LightningElement {
       ;
   }
 
-  @api set sortDirection(value) {
+  set sortDirection(value) {
     this._sortDirection = value;
   }
 
@@ -494,14 +494,6 @@ export default class ListViewDataQuery extends LightningElement {
 
   @api set pageSize(value) {
     this._pageSize = value;
-  }
-
-  get showRowNumber() {
-    return toBoolean(this._showRowNumber);
-  }
-
-  @api set showRowNumber(value) {
-    this._showRowNumber = value;
   }
 
   get infiniteScrolling() {
@@ -553,18 +545,18 @@ export default class ListViewDataQuery extends LightningElement {
   }
 
   get editFields() {
-    return this._editFields;
-  }
-
-  get editFieldsList() {
-    return (this._editFields || '')
-      .split(/[^a-z0-9_]+/gi)
-      .map((field) => field.toLowerCase())
-      ;
+    return this._editFields || '';
   }
 
   @api set editFields(value) {
     this._editFields = value;
+  }
+
+  get editFieldsList() {
+    return this.editFields
+      .split(/[^a-z0-9_]+/gi)
+      .map((field) => field.toLowerCase())
+      ;
   }
 
   get searchTerm() {

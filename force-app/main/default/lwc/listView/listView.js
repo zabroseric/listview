@@ -1,4 +1,5 @@
 import {api, LightningElement} from 'lwc';
+import {toBoolean} from "../utils/utils";
 
 const ERROR_MESSAGE_GENERIC = 'An unknown error occurred, please contact support.';
 const PAGE_SIZE_DEFAULT = 20;
@@ -293,5 +294,13 @@ export default class ListView extends LightningElement {
 
   set valuesTotalCount(value) {
     this._valuesTotalCount = value;
+  }
+
+  get showRowNumber() {
+    return toBoolean(this._showRowNumber);
+  }
+
+  @api set showRowNumber(value) {
+    this._showRowNumber = value;
   }
 }
