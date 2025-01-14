@@ -1,41 +1,43 @@
 import {api, LightningElement} from 'lwc';
 
-const INFINITE_SCROLLING_HEIGHT_DEFAULT = 30;
 const ERROR_MESSAGE_GENERIC = 'An unknown error occurred, please contact support.';
+const PAGE_SIZE_DEFAULT = 20;
 
 export default class ListView extends LightningElement {
 
-  @api valuesTotalCount;
   @api isLoading;
   @api enableSearch;
   @api enableDownload;
   @api columns;
   @api draftValues;
-  @api infiniteLoading;
   @api showRowNumber;
   @api sortBy;
   @api sortDirection;
   @api fieldErrors;
-  @api showPages;
-  @api isPagePreviousDisabled;
-  @api isViewAllDisabled;
-  @api isPageNextDisabled;
   @api enableRefresh;
   @api infiniteScrolling;
   @api page;
   @api pageLast;
-  @api isLoadingMore;
 
   _title;
   _subTitle;
   _icon;
   _pageSize;
+  _pageSizeInitial;
+  _pageSizeMax;
   _error;
-
-
   _values;
+  _valuesTotalCount;
+
+  isLoadingMore = false;
 
   onLoadMore() {
+    // Don't show more than our maximum limit or what is available.
+    if (this.pageSize >= this.pageSizeMax || this.values.length >= this.valuesTotalCount) {
+      return;
+    }
+
+    this.isLoadingMore = true;
     this.dispatchEvent(new CustomEvent('loadmore'));
   }
 
@@ -142,6 +144,7 @@ export default class ListView extends LightningElement {
     if (this._error) {
       console.error(value);
     }
+    this.isLoadingMore = false;
     this._error = value;
   }
 
@@ -151,7 +154,7 @@ export default class ListView extends LightningElement {
    * @returns {number}
    */
   get infiniteScrollingHeight() {
-    return Number(this.values?.length > 0 ? this.initialPageSize * 2.5 : INFINITE_SCROLLING_HEIGHT_DEFAULT);
+    return Number(this.pageSizeInitial * 2.5);
   }
 
   /**
@@ -161,6 +164,45 @@ export default class ListView extends LightningElement {
    */
   get isPageBuilder() {
     return window.location.pathname.indexOf('flexipageEditor') !== -1;
+  }
+
+  /**
+   * Get the total number of pages based on the row count.
+   *
+   * @returns {number}
+   */
+  get pageLast() {
+    return Math.ceil(this.valuesTotalCount / (this.pageSize)) || 1;
+  }
+
+  /**
+   * If pages should be shown based on the options provided and the count of records.
+   *
+   * @returns {boolean}
+   */
+  get showPages() {
+    return !!this.pageSize && this.pageLast > 1 && !this.infiniteScrolling;
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  get isViewAllDisabled() {
+    return this.pageSize >= this.pageSizeMax || this.isLoading;
+  }
+
+  /**
+   * @returns {boolean|*}
+   */
+  get isPagePreviousDisabled() {
+    return this.page <= 1 || this.isViewAllDisabled;
+  }
+
+  /**
+   * @returns {boolean|*}
+   */
+  get isPageNextDisabled() {
+    return this.page > this.pageLast - 1 || this.isViewAllDisabled;
   }
 
   /* -----------------------------------------------
@@ -215,18 +257,41 @@ export default class ListView extends LightningElement {
     this._icon = value;
   }
 
+  get pageSize() {
+    return Number(this._pageSize) > 0 ? Number(this._pageSize) : PAGE_SIZE_DEFAULT;
+  }
 
+  @api set pageSize(value) {
+    this._pageSizeInitial = this._pageSizeInitial || value;
+    this._pageSize = value;
+  }
 
+  get pageSizeInitial() {
+    return Number(this._pageSizeInitial) > 0 ? Number(this._pageSizeInitial) : PAGE_SIZE_DEFAULT;
+  }
 
+  get pageSizeMax() {
+    return Number(this._pageSizeMax) > 0 ? Number(this._pageSizeMax) : PAGE_SIZE_DEFAULT;
+  }
 
-
+  @api set pageSizeMax(value) {
+    this._pageSizeMax = value;
+  }
 
   get values() {
-    return this._values;
+    return this._values ?? [];
   }
 
   @api set values(value) {
+    this.isLoadingMore = false;
     this._values = value;
-    this.initialPageSize = this.initialPageSize > 0 ? this.initialPageSize : this._values.length;
+  }
+
+  get valuesTotalCount() {
+    return Number(this._valuesTotalCount) ?? this.values.length;
+  }
+
+  set valuesTotalCount(value) {
+    this._valuesTotalCount = value;
   }
 }

@@ -8,11 +8,7 @@ import getColumn from './getColumn';
 import getRow from "./getRow";
 import {flattenObject, logApexFunc, titleCase, toBoolean} from "c/utils";
 import {
-  errorMessageGeneric,
-  infiniteScrollHeightDefault,
   nameFields,
-  pageSizeDefault,
-  pageSizeMax,
   searchTimerDelay,
   sortByDefault,
   sortDirectionDefault,
@@ -31,6 +27,7 @@ const getSObjectFields = logApexFunc('getSObjectFields', getSObjectFieldsApex);
 const updateRecord = logApexFunc('updateRecord', updateRecordApex, true);
 
 const PAGE_SIZE_DEFAULT = 200;
+const PAGE_SIZE_MAX = 1000;
 
 export default class ListViewDataQuery extends LightningElement {
 
@@ -61,7 +58,6 @@ export default class ListViewDataQuery extends LightningElement {
   dataOffset = 0;
   dataTotalCount;
   isLoading = true;
-  isLoadingMore = false;
   draftValues;
   fieldErrors;
   _searchTerm;
@@ -223,7 +219,7 @@ export default class ListViewDataQuery extends LightningElement {
    */
   onViewAll() {
     this.dataOffset = 0;
-    this.pageSize = pageSizeMax;
+    this.pageSize = this.pageSizeMax;
     this.refreshData();
   }
 
@@ -339,20 +335,12 @@ export default class ListViewDataQuery extends LightningElement {
    * @returns {boolean}
    */
   async onLoadMore() {
-    // Don't show more than our maximum limit or what is available.
-    if (this.pageSize >= pageSizeMax || this.data.length >= this.dataTotalCount) {
-      return false;
-    }
-
-    this.isLoadingMore = true;
     this.pageSize += this.infiniteScrollingAdditionalRows;
 
     try {
       await this.getData();
     } catch (e) {
       this.error = e;
-    } finally {
-      this.isLoadingMore = false;
     }
   }
 
@@ -422,45 +410,6 @@ export default class ListViewDataQuery extends LightningElement {
    */
   get page() {
     return (this.dataOffset / (this.pageSize)) + 1;
-  }
-
-  /**
-   * Get the total number of pages based on the row count.
-   *
-   * @returns {number}
-   */
-  get pageLast() {
-    return Math.ceil(this.dataTotalCount / (this.pageSize)) || 1;
-  }
-
-  /**
-   * If pages should be shown based on the options provided and the count of records.
-   *
-   * @returns {boolean}
-   */
-  get showPages() {
-    return !!this.pageSize && this.pageLast > 1 && !this.infiniteScrolling;
-  }
-
-  /**
-   * @returns {boolean|*}
-   */
-  get isPagePreviousDisabled() {
-    return this.page <= 1 || this.isViewAllDisabled;
-  }
-
-  /**
-   * @returns {boolean|*}
-   */
-  get isPageNextDisabled() {
-    return this.page > this.pageLast - 1 || this.isViewAllDisabled;
-  }
-
-  /**
-   * @returns {boolean}
-   */
-  get isViewAllDisabled() {
-    return this.pageSize >= pageSizeMax || this.isLoading;
   }
 
   /**
@@ -658,5 +607,9 @@ export default class ListViewDataQuery extends LightningElement {
 
   @api set hyperlinkNames(value) {
     this._hyperlinkNames = value;
+  }
+
+  get pageSizeMax() {
+    return PAGE_SIZE_MAX;
   }
 }

@@ -1,5 +1,5 @@
 
-export const pageSizeMax = 1000;
+
 export const pageSizeDefault = 200;
 export const sortByDefault = 'id';
 export const sortDirectionDefault = 'asc';
